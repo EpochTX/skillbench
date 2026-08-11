@@ -5,9 +5,11 @@ import YAML from 'yaml';
 import { describe, expect, it } from 'vitest';
 
 const root = path.resolve(import.meta.dirname, '../..');
-const workflowPaths = [
+const actionReferencePaths = [
   '.github/workflows/ci.yml',
   'examples/github-actions/skillbench-sarif.yml',
+  'README.md',
+  'README_EN.md',
 ];
 
 function read(relativePath: string): string {
@@ -15,18 +17,16 @@ function read(relativePath: string): string {
 }
 
 describe('workflow supply-chain policy', () => {
-  it('pins every third-party action in project workflows and examples', () => {
-    for (const workflowPath of workflowPaths) {
-      const workflow = read(workflowPath);
-      const references = [...workflow.matchAll(/uses:\s+[^@\s]+@([^\s#]+)/gu)].map(
+  it('pins every third-party action in workflows and copy-paste examples', () => {
+    for (const filePath of actionReferencePaths) {
+      const content = read(filePath);
+      const references = [...content.matchAll(/uses:\s+[^@\s]+@([^\s#]+)/gu)].map(
         (match) => match[1] ?? '',
       );
 
-      expect(references.length, `${workflowPath} should use actions`).toBeGreaterThan(
-        0,
-      );
+      expect(references.length, `${filePath} should use actions`).toBeGreaterThan(0);
       for (const reference of references) {
-        expect(reference, `${workflowPath} contains an unpinned action`).toMatch(
+        expect(reference, `${filePath} contains an unpinned action`).toMatch(
           /^[0-9a-f]{40}$/u,
         );
       }
