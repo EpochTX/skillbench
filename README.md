@@ -10,8 +10,6 @@
 
 <p align="center"><strong>面向 AI Agent Skills 的开源基准、Linter 与跨 Agent 兼容性检查器。</strong></p>
 
-<p align="center">给 Agent 指令一套真正可重复、可解释、可接入 CI 的测试体系。</p>
-
 <p align="center">
   <a href="https://github.com/EpochTX/skillbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/EpochTX/skillbench/ci.yml?branch=main&style=flat-square&label=CI"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black?style=flat-square"></a>
@@ -19,27 +17,23 @@
   <img alt="SkillBench version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-blue?style=flat-square">
 </p>
 
-```console
-$ npx skillbench-ai scan SKILL.md
-```
-
 ![SkillBench terminal demo](docs/demo.svg)
 
-> 演示分数仅用于展示界面。真实分析中的每一次扣分都会给出规则 ID、严重级别、位置、证据与修复建议。
+> npm 包 `skillbench-ai` 尚未正式发布。当前版本请从源码运行；正式发布后再使用 `npx skillbench-ai` 或全局安装命令。
 
 ## SkillBench 是什么？
 
-Agent Skills、`AGENTS.md`、`CLAUDE.md`、Cursor Rules 等指令文件正在逐渐成为 AI 工程项目的一部分，但它们通常缺少传统代码已经拥有的质量保障：静态检查、回归对比、安全规则、CI 门禁与可机器读取的报告。
+Agent Skills、`AGENTS.md`、`CLAUDE.md`、Cursor Rules 等指令文件正在成为 AI 工程项目的一部分，但它们通常缺少传统代码已有的质量保障：静态检查、安全规则、回归对比、CI 门禁和机器可读报告。
 
-SkillBench 为这类文件提供一套确定性的静态分析工具链：
+SkillBench 为这类文件提供确定性的本地静态分析：
 
-- **质量检查**：发现范围不清、表述模糊、重复内容、冲突指令与优先级滥用。
+- **质量检查**：发现范围不清、表述模糊、重复内容、冲突指令和优先级滥用。
 - **安全检查**：检测凭据访问、Prompt Injection、危险 Shell、任意代码执行、破坏性 Git/数据库操作等风险。
-- **Token 效率分析**：估算 Token、重复 Token、潜在压缩空间与指令密度。
+- **Token 效率分析**：估算 Token、重复 Token、潜在压缩空间和指令密度。
 - **跨 Agent 兼容性**：分析同一套指令在 Codex、Claude Code、Cursor、Gemini CLI、GitHub Copilot 中的可用程度。
-- **可解释评分**：每一分的扣除都有明确规则和依据，不依赖隐藏模型判断。
-- **回归检测**：对比两个版本，区分新增问题、已解决问题与兼容性变化。
-- **CI / SARIF**：支持 JSON、SARIF 2.1.0、GitHub Actions 原生注解与稳定退出码。
+- **可解释评分**：每次扣分都有规则 ID、严重级别和依据，不依赖隐藏模型判断。
+- **回归检测**：对比两个版本，区分新增、已解决和未变化的问题。
+- **CI / SARIF**：支持 JSON、SARIF 2.1.0、GitHub Actions 原生注解和稳定退出码。
 
 默认分析完全在本地完成，**不会执行被扫描文件中的脚本，也不会把源文本发送到网络服务**。
 
@@ -52,7 +46,7 @@ git clone https://github.com/EpochTX/skillbench.git
 cd skillbench
 
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm build
 
 node dist/cli.js scan SKILL.md
@@ -64,15 +58,11 @@ node dist/cli.js scan SKILL.md
 pnpm dev -- scan SKILL.md
 ```
 
-项目的 npm 包名为 `skillbench-ai`，CLI 可执行文件名为 `skillbench`。发布到 npm 后可以直接使用：
-
-```bash
-npx skillbench-ai scan SKILL.md
-```
+npm 正式发布后，包名为 `skillbench-ai`，CLI 可执行文件名仍为 `skillbench`。
 
 ## 自动发现的文件
 
-当目标是一个目录时，SkillBench 会自动发现常见 Agent 指令入口：
+当目标是目录时，SkillBench 会自动发现常见 Agent 指令入口：
 
 ```text
 SKILL.md
@@ -85,24 +75,24 @@ GEMINI.md
 .github/instructions/**/*.instructions.md
 ```
 
-支持 Linux、macOS 与 Windows，要求 Node.js 20 或更高版本。
+支持 Linux、macOS 和 Windows，要求 Node.js 20 或更高版本。
 
 ## CLI
 
-| 命令 | 用途 |
-| --- | --- |
-| `skillbench scan [target]` | 完整分析：评分、问题、Token 与兼容性 |
-| `skillbench score [target]` | 仅输出总分与分类分数 |
-| `skillbench lint [target]` | 输出全部规则命中、位置与修复建议 |
-| `skillbench security [target]` | 仅查看安全相关问题 |
-| `skillbench token [target]` | Token、重复度与指令密度分析 |
-| `skillbench compat [target]` | 五类 Agent 兼容性分析 |
+| 命令                                  | 用途                                        |
+| ------------------------------------- | ------------------------------------------- |
+| `skillbench scan [target]`            | 完整分析：评分、问题、Token 与兼容性        |
+| `skillbench score [target]`           | 仅输出总分与分类分数                        |
+| `skillbench lint [target]`            | 输出全部规则命中、位置与修复建议            |
+| `skillbench security [target]`        | 仅查看安全相关问题                          |
+| `skillbench token [target]`           | Token、重复度与指令密度分析                 |
+| `skillbench compat [target]`          | 五类 Agent 兼容性分析                       |
 | `skillbench compare <before> <after>` | 对比两个版本的评分、Token、问题与兼容性变化 |
-| `skillbench diff <before> <after>` | `compare` 的别名 |
-| `skillbench rules [ruleId]` | 列出全部规则，或查看某条规则详情 |
-| `skillbench fix [target] --dry-run` | 输出修复建议；v0.2 不修改目标文件 |
-| `skillbench init [directory]` | 创建 `.skillbench.yml` |
-| `skillbench badge [target]` | 生成 shields.io Markdown Badge |
+| `skillbench diff <before> <after>`    | `compare` 的别名                            |
+| `skillbench rules [ruleId]`           | 列出全部规则，或查看某条规则详情            |
+| `skillbench fix [target] --dry-run`   | 输出修复建议；v0.2 不修改目标文件           |
+| `skillbench init [directory]`         | 创建 `.skillbench.yml`                      |
+| `skillbench badge [target]`           | 生成 shields.io Markdown Badge              |
 
 ### 输出格式
 
@@ -127,17 +117,17 @@ skillbench lint . --format github --ci --fail-on error
 # SARIF 2.1.0
 skillbench scan . --format sarif --output skillbench.sarif
 
-# 回归检查：只让“新增问题”影响 CI
+# 回归检查：只让新增问题影响 CI
 skillbench compare ./baseline ./candidate --ci --fail-on error
 ```
 
 稳定退出码：
 
-| 退出码 | 含义 |
-| ---: | --- |
-| `0` | 分析完成，未达到 CI 失败阈值 |
-| `1` | `--ci` 指定的严重级别阈值被触发 |
-| `2` | 参数、配置、目标或解析错误 |
+| 退出码 | 含义                            |
+| -----: | ------------------------------- |
+|    `0` | 分析完成，未达到 CI 失败阈值    |
+|    `1` | `--ci` 指定的严重级别阈值被触发 |
+|    `2` | 参数、配置、目标或解析错误      |
 
 `--fail-on` 支持 `warning`、`error`、`critical`。
 
@@ -145,13 +135,13 @@ skillbench compare ./baseline ./candidate --ci --fail-on error
 
 默认总分由五个维度加权组成：
 
-| 维度 | 权重 | 主要检查内容 |
-| --- | ---: | --- |
-| 指令质量 | 30% | 范围、清晰度、矛盾、模糊表达、优先级层次 |
-| 安全性 | 25% | 破坏性操作、密钥、凭据、注入、任意执行 |
-| Token 效率 | 15% | Token 估算、重复段落、重复指令、超大示例 |
-| 可移植性 | 20% | Agent Skills 元数据、平台原生入口、厂商扩展 |
-| 可维护性 | 10% | 文档结构、章节长度、段落密度与可导航性 |
+| 维度       | 权重 | 主要检查内容                                |
+| ---------- | ---: | ------------------------------------------- |
+| 指令质量   |  30% | 范围、清晰度、矛盾、模糊表达、优先级层次    |
+| 安全性     |  25% | 破坏性操作、密钥、凭据、注入、任意执行      |
+| Token 效率 |  15% | Token 估算、重复段落、重复指令、超大示例    |
+| 可移植性   |  20% | Agent Skills 元数据、平台原生入口、厂商扩展 |
+| 可维护性   |  10% | 文档结构、章节长度、段落密度与可导航性      |
 
 严重级别提供基础扣分，每条规则再应用独立倍率。同一规则重复命中会采用递减扣分：`100% → 50% → 25%`，避免普通重复警告把总分异常拉低。
 
@@ -175,13 +165,13 @@ skillbench compare ./baseline ./candidate --ci --fail-on error
 
 v0.2 推荐配置包含 **24 条确定性规则**：
 
-| 范围 | 分类 | 关注点 |
-| --- | --- | --- |
-| `SB001`–`SB007` | 指令质量 | 长度、重复、冲突、模糊语言、任务目的、优先级标记 |
-| `SB100`–`SB106` | 安全性 | 危险命令、密钥、凭据目录、任意执行、注入、远程脚本、破坏性操作 |
-| `SB200`–`SB203` | Token 效率 | 重复 Token、重复模态词、Markdown 噪声、大量代码示例 |
-| `SB300`–`SB302` | 可维护性 | 缺少章节、超大章节、超大段落 |
-| `SB400`–`SB402` | 可移植性 | Agent Skills 元数据、厂商专属字段、Cursor/Copilot 范围元数据 |
+| 范围            | 分类       | 关注点                                                         |
+| --------------- | ---------- | -------------------------------------------------------------- |
+| `SB001`–`SB007` | 指令质量   | 长度、重复、冲突、模糊语言、任务目的、优先级标记               |
+| `SB100`–`SB106` | 安全性     | 危险命令、密钥、凭据目录、任意执行、注入、远程脚本、破坏性操作 |
+| `SB200`–`SB203` | Token 效率 | 重复 Token、重复模态词、Markdown 噪声、大量代码示例            |
+| `SB300`–`SB302` | 可维护性   | 缺少章节、超大章节、超大段落                                   |
+| `SB400`–`SB402` | 可移植性   | Agent Skills 元数据、厂商专属字段、Cursor/Copilot 范围元数据   |
 
 查看全部规则：
 
@@ -214,13 +204,13 @@ Instruction Density         46.8%
 
 SkillBench 将平台相关逻辑隔离在 Adapter 层，不把不同 Agent 的条件分支散落进规则引擎。
 
-| Agent | 可移植 Skill | 原生指令入口 |
-| --- | --- | --- |
-| OpenAI Codex | `SKILL.md` | `AGENTS.md` |
-| Claude Code | `SKILL.md` | `CLAUDE.md` |
-| Cursor | `SKILL.md` | `AGENTS.md`、`.cursor/rules/*.mdc`；`.cursorrules` 标记为 legacy |
-| Gemini CLI | `SKILL.md` | `GEMINI.md` |
-| GitHub Copilot | `SKILL.md` | `.github/copilot-instructions.md`、作用域 `.instructions.md` |
+| Agent          | 可移植 Skill | 原生指令入口                                                     |
+| -------------- | ------------ | ---------------------------------------------------------------- |
+| OpenAI Codex   | `SKILL.md`   | `AGENTS.md`                                                      |
+| Claude Code    | `SKILL.md`   | `CLAUDE.md`                                                      |
+| Cursor         | `SKILL.md`   | `AGENTS.md`、`.cursor/rules/*.mdc`；`.cursorrules` 标记为 legacy |
+| Gemini CLI     | `SKILL.md`   | `GEMINI.md`                                                      |
+| GitHub Copilot | `SKILL.md`   | `.github/copilot-instructions.md`、作用域 `.instructions.md`     |
 
 兼容性状态：
 
@@ -248,21 +238,23 @@ skillbench compare ./baseline ./candidate --ci --fail-on error
 
 在 CI 模式下，只有**新增问题**参与失败阈值判断，因此历史技术债不会阻塞无关改进。
 
-## SARIF 与 GitHub Actions
+## SARIF 与 GitHub Actions annotations
 
-SARIF 输出遵循 SARIF 2.1.0，可用于 GitHub Code Scanning 及其他 SARIF 消费端。报告包含规则元数据、源码位置、稳定指纹、严重级别、分类与修复建议。
+SARIF 输出遵循 SARIF 2.1.0，可用于 GitHub Code Scanning 及其他 SARIF 消费端。报告包含规则元数据、源码位置、稳定指纹、严重级别、分类和修复建议。
 
 ```bash
 skillbench scan . --format sarif --output skillbench.sarif
 ```
 
-轻量级 GitHub Actions 集成可以使用 `github` 格式，直接输出原生 `::error`、`::warning` 与 `::notice`：
+轻量级 GitHub Actions 集成可以使用 `github` 格式，直接输出原生 `::error`、`::warning` 和 `::notice`：
 
 ```bash
 skillbench lint . --format github --ci --fail-on error
 ```
 
-示例工作流：
+## CI 使用方式
+
+npm 包正式发布前，可以直接从源码在 CI 中运行。下面的示例把工具检出到工作区之外，避免把 SkillBench 自身的文件混入扫描目标：
 
 ```yaml
 name: SkillBench
@@ -272,23 +264,31 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   skillbench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
-      - name: Install SkillBench
-        run: npm install -g skillbench-ai
+      - name: Install SkillBench from source
+        run: |
+          git clone --depth 1 https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
       - name: Check agent instructions
-        run: skillbench scan . --ci --fail-on critical
+        run: pnpm --dir "$RUNNER_TEMP/skillbench" dev -- scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
-仓库自身的 `.github/workflows/ci.yml` 会对 Node.js 20 与 22 运行检查。
+仓库自身的 `.github/workflows/ci.yml` 会在 Ubuntu 上验证 Node.js 20 和 22，并在 macOS、Windows 上执行跨平台测试和构建。
 
-## 配置
+## 配置文件
 
 初始化：
 
@@ -317,11 +317,11 @@ ignore:
   - vendor/**
 ```
 
-权重可以使用任意非负比例，计算总分时会自动归一化。未知字段、未知规则 ID 与非法严重级别会直接报配置错误，不会被静默忽略。
+权重可以使用任意非负比例，计算总分时会自动归一化。未知字段、未知规则 ID 和非法严重级别会直接报配置错误，不会被静默忽略。
 
-## JSON 报告
+## JSON 报告与 schema
 
-JSON 是稳定的机器集成格式：
+JSON 是稳定的机器集成格式。v0.2.0 当前报告 schema 版本为 `0.1`：
 
 ```json
 {
@@ -354,14 +354,14 @@ SkillBench 默认采用保守的静态分析边界：
 
 ## 架构
 
-| 模块 | 职责 | 扩展方向 |
-| --- | --- | --- |
-| `parser/` | Frontmatter、段落、章节与源码位置解析 | 新文本格式 |
-| `rules/` | 按分类组织的确定性规则 | 新规则 |
-| `core/` | 分析编排、Token、规则引擎、评分与回归比较 | 新分析器/评分配置 |
-| `adapters/` | Agent 原生入口检测与兼容性推理 | 新 Agent |
-| `reporters/` | Terminal、JSON、SARIF、GitHub 注解与 Badge | 新报告格式 |
-| `cli/` | 命令、参数、CI 策略与用户错误 | 新工作流 |
+| 模块         | 职责                                       | 扩展方向          |
+| ------------ | ------------------------------------------ | ----------------- |
+| `parser/`    | Frontmatter、段落、章节与源码位置解析      | 新文本格式        |
+| `rules/`     | 按分类组织的确定性规则                     | 新规则            |
+| `core/`      | 分析编排、Token、规则引擎、评分与回归比较  | 新分析器/评分配置 |
+| `adapters/`  | Agent 原生入口检测与兼容性推理             | 新 Agent          |
+| `reporters/` | Terminal、JSON、SARIF、GitHub 注解与 Badge | 新报告格式        |
+| `cli/`       | 命令、参数、CI 策略与用户错误              | 新工作流          |
 
 公共 TypeScript API 从 `src/index.ts` 导出。
 
@@ -384,14 +384,14 @@ skillbench/
 └── .skillbench.yml
 ```
 
-## 本地开发
+## 开发方式
 
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 
-pnpm typecheck
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm build
 ```
@@ -405,17 +405,15 @@ pnpm build
 - **v0.3**：可选安全自动修复、沙箱执行 Benchmark、可选 LLM Judge、Skill 回归测试。
 - **v0.4**：SkillBench Registry、公开排行榜、可分享的托管报告。
 
-计划中的命令包括 `skillbench test` 与语料级 `benchmark`。真实执行型 Benchmark 只会在显式沙箱中运行，并衡量任务成功率、Token、耗时、工具调用、文件变化与测试结果。
+计划中的命令包括 `skillbench test` 和语料级 `benchmark`。真实执行型 Benchmark 只会在显式沙箱中运行，并衡量任务成功率、Token、耗时、工具调用、文件变化和测试结果。
 
-## 贡献
+## Contributing
 
-欢迎提交新规则、新 Agent Adapter、测试、文档与兼容性改进。
-
-请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。提交前确保：
+欢迎提交新规则、新 Agent Adapter、测试、文档和兼容性改进。请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。提交前确保：
 
 ```bash
-pnpm typecheck
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm build
 ```
