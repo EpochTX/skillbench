@@ -36,6 +36,23 @@ describe('parseDocument', () => {
     expect(document.kind).toBe('agents');
   });
 
+  it('handles empty files without inventing content', () => {
+    const document = parseDocument('/repo/SKILL.md', '', '/repo');
+    expect(document.body).toBe('');
+    expect(document.paragraphs).toEqual([]);
+    expect(document.sections).toEqual([]);
+  });
+
+  it('preserves Unicode content and section titles', () => {
+    const document = parseDocument(
+      '/repo/SKILL.md',
+      '# 说明\n\n检查中文、한글、かな和 emoji ✅。\n',
+      '/repo',
+    );
+    expect(document.content).toContain('中文、한글、かな和 emoji ✅');
+    expect(document.sections[0]?.title).toBe('说明');
+  });
+
   it('rejects malformed or unclosed frontmatter', () => {
     expect(() => parseDocument('/repo/SKILL.md', '---\nname: [\n---\nBody')).toThrow(
       DocumentParseError,
