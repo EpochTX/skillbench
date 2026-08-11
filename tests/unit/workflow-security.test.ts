@@ -22,7 +22,9 @@ describe('workflow supply-chain policy', () => {
         (match) => match[1] ?? '',
       );
 
-      expect(references.length, `${workflowPath} should use actions`).toBeGreaterThan(0);
+      expect(references.length, `${workflowPath} should use actions`).toBeGreaterThan(
+        0,
+      );
       for (const reference of references) {
         expect(reference, `${workflowPath} contains an unpinned action`).toMatch(
           /^[0-9a-f]{40}$/u,
