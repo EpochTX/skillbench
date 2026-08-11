@@ -28,6 +28,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm test:dist
+      - if: matrix.node == 22
+        run: pnpm pack:check
 
   platform:
     name: ${{ matrix.os }}
@@ -46,3 +49,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm test:dist
