@@ -25,11 +25,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - name: Show Prettier diff on lint failure
-        if: failure()
-        run: |
-          pnpm exec prettier --write .
-          git diff -- .
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
