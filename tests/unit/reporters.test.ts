@@ -63,15 +63,15 @@ describe('machine reporters', () => {
   it('renders SARIF 2.1.0 with locations and fingerprints', () => {
     const rendered = JSON.parse(new SarifReporter().render(report)) as {
       version: string;
-      runs: Array<{
-        results: Array<{
+      runs: {
+        results: {
           ruleId: string;
           partialFingerprints: Record<string, string>;
-          locations: Array<{
+          locations: {
             physicalLocation: { region: { startLine: number } };
-          }>;
-        }>;
-      }>;
+          }[];
+        }[];
+      }[];
     };
     expect(rendered.version).toBe('2.1.0');
     expect(rendered.runs[0]?.results[0]?.ruleId).toBe('SB102');
