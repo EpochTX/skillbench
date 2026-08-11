@@ -1,4 +1,6 @@
 import { spawnSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
@@ -29,6 +31,29 @@ describe('CLI smoke tests', () => {
     };
     expect(report.schemaVersion).toBe('0.1');
     expect(report.score.overall).toBeGreaterThanOrEqual(95);
+  });
+
+  it('creates parent directories for --output', () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), 'skillbench-cli-'));
+    const outputPath = path.join(directory, 'nested', 'report.json');
+    try {
+      const result = runCli(
+        'scan',
+        'tests/fixtures/good-skill/SKILL.md',
+        '--format',
+        'json',
+        '--output',
+        outputPath,
+        '--no-color',
+      );
+      expect(result.status).toBe(0);
+      const report = JSON.parse(readFileSync(outputPath, 'utf8')) as {
+        schemaVersion: string;
+      };
+      expect(report.schemaVersion).toBe('0.1');
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   });
 
   it('returns exit code 1 for critical findings in CI mode', () => {
@@ -98,6 +123,12 @@ describe('CLI smoke tests', () => {
     expect(explained.status).toBe(0);
     expect(explained.stdout).toContain('SB102');
     expect(explained.stdout).toContain('safety');
+  });
+
+  it('returns exit code 2 for an unknown rule ID', () => {
+    const result = runCli('rules', 'SB999', '--no-color');
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain('Unknown rule: SB999');
   });
 
   it('compares two targets and fails CI only on introduced findings', () => {
