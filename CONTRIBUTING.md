@@ -9,13 +9,18 @@ git clone https://github.com/EpochTX/skillbench.git
 cd skillbench
 corepack enable
 pnpm install --frozen-lockfile
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
+pnpm verify
 ```
 
-SkillBench requires Node.js 20 or newer. The repository pins pnpm in `package.json`.
+`pnpm verify` runs lint, TypeScript typechecking, the full Vitest suite, the production build, and a smoke test against the built `dist/cli.js` executable. SkillBench requires Node.js 20 or newer. The repository pins pnpm in `package.json`.
+
+If a change touches publishable files or package metadata, also run:
+
+```bash
+pnpm pack:check
+```
+
+This performs a dry-run package build so the final tarball contents can be reviewed before publication.
 
 ## Add a new SkillBench rule
 
@@ -48,7 +53,8 @@ Rules must be deterministic in the recommended profile. Do not add a network cal
 
 - Open an issue first for a new rule range, scoring change, or compatibility behavior change.
 - Include tests and update documentation for user-visible behavior.
-- Run `pnpm lint && pnpm typecheck && pnpm test && pnpm build` locally.
+- Run `pnpm verify` locally.
+- Run `pnpm pack:check` when publishable files, package metadata, or release behavior changes.
 - Do not include real credentials, private instructions, or proprietary Skill files in fixtures.
 
 By contributing, you agree that your contribution is licensed under the MIT License.
