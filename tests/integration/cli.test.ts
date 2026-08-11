@@ -79,6 +79,50 @@ describe('CLI smoke tests', () => {
     expect(result.stdout).toContain('No files were changed');
   });
 
+  it('runs score, compatibility, token, security, and badge commands', () => {
+    const target = 'tests/fixtures/good-skill/SKILL.md';
+
+    const score = runCli('score', target, '--no-color');
+    expect(score.status).toBe(0);
+    expect(score.stdout).toContain('Overall Score:');
+
+    const compatibility = runCli('compat', target, '--no-color');
+    expect(compatibility.status).toBe(0);
+    expect(compatibility.stdout).toContain('Compatibility Report');
+    expect(compatibility.stdout).toContain('OpenAI Codex');
+
+    const token = runCli('token', target, '--no-color');
+    expect(token.status).toBe(0);
+    expect(token.stdout).toContain('Token Efficiency');
+    expect(token.stdout).toContain('Estimated Tokens');
+
+    const security = runCli(
+      'security',
+      'tests/fixtures/dangerous-skill/SKILL.md',
+      '--no-color',
+    );
+    expect(security.status).toBe(0);
+    expect(security.stdout).toContain('Security Report');
+
+    const badge = runCli('badge', target);
+    expect(badge.status).toBe(0);
+    expect(badge.stdout).toContain('https://img.shields.io/badge/SkillBench-');
+  });
+
+  it('initializes a configuration through the CLI', () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), 'skillbench-init-'));
+    try {
+      const result = runCli('init', directory);
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('Created');
+      expect(readFileSync(path.join(directory, '.skillbench.yml'), 'utf8')).toContain(
+        'extends: recommended',
+      );
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it('supports stricter configurable CI thresholds', () => {
     const result = runCli(
       'lint',
