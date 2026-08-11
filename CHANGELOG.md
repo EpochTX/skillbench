@@ -9,6 +9,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 - CI now smoke-tests the built `dist/cli.js` executable on Node.js 20, Node.js 22, macOS, and Windows.
 - Publishable package metadata now includes README-linked documentation and SVG assets.
 - Release verification includes a dry-run package check and pre-publish quality gates.
+- GitHub Actions dependencies are pinned to immutable full commit SHAs, and checkout credentials are not persisted after repository setup.
+- Dependabot checks npm/pnpm and GitHub Actions dependencies weekly.
 
 ### Fixed
 
