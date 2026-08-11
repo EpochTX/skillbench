@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620" role="img" aria-labelledby="title desc">
+  <title id="title">SkillBench terminal demonstration</title>
+  <desc id="desc">A terminal showing a SkillBench score, category scores, compatibility, and issue counts.</desc>
+  <rect width="1000" height="620" rx="18" fill="#0d1117"/>
+  <rect width="1000" height="52" rx="18" fill="#161b22"/>
+  <rect y="34" width="1000" height="18" fill="#161b22"/>
+  <circle cx="28" cy="26" r="7" fill="#ff5f57"/>
+  <circle cx="52" cy="26" r="7" fill="#febc2e"/>
+  <circle cx="76" cy="26" r="7" fill="#28c840"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#c9d1d9">
+    <text x="38" y="92" fill="#8b949e">$</text>
+    <text x="62" y="92" fill="#f0f6fc">npx skillbench-ai scan SKILL.md</text>
+    <text x="38" y="139" font-weight="700" fill="#f0f6fc">SkillBench 0.2.0</text>
+    <text x="38" y="174" fill="#8b949e">1 file scanned</text>
+    <text x="38" y="222" font-weight="700" fill="#f0f6fc">Overall Score</text>
+    <text x="38" y="258" font-size="30" font-weight="700" fill="#3fb950">91.4 / 100</text>
+    <text x="38" y="310">Instruction</text>
+    <text x="260" y="310" fill="#3fb950">█████████░</text>
+    <text x="420" y="310">94.0</text>
+    <text x="38" y="344">Safety</text>
+    <text x="260" y="344" fill="#3fb950">█████████░</text>
+    <text x="420" y="344">89.0</text>
+    <text x="38" y="378">Efficiency</text>
+    <text x="260" y="378" fill="#d29922">█████████░</text>
+    <text x="420" y="378">86.0</text>
+    <text x="38" y="412">Portability</text>
+    <text x="260" y="412" fill="#3fb950">██████████</text>
+    <text x="420" y="412">96.0</text>
+    <text x="38" y="446">Maintainability</text>
+    <text x="260" y="446" fill="#3fb950">█████████░</text>
+    <text x="420" y="446">92.0</text>
+    <text x="590" y="222" font-weight="700" fill="#f0f6fc">Compatibility</text>
+    <text x="590" y="266">OpenAI Codex</text>
+    <text x="880" y="266" text-anchor="end" fill="#3fb950">PASS</text>
+    <text x="590" y="300">Claude Code</text>
+    <text x="880" y="300" text-anchor="end" fill="#3fb950">PASS</text>
+    <text x="590" y="334">Cursor</text>
+    <text x="880" y="334" text-anchor="end" fill="#3fb950">PASS</text>
+    <text x="590" y="368">Gemini CLI</text>
+    <text x="880" y="368" text-anchor="end" fill="#d29922">WARN</text>
+    <text x="590" y="402">GitHub Copilot</text>
+    <text x="880" y="402" text-anchor="end" fill="#3fb950">PASS</text>
+    <text x="590" y="470" font-weight="700" fill="#f0f6fc">Issues</text>
+    <text x="590" y="507" fill="#8b949e">0 critical</text>
+    <text x="735" y="507" fill="#d29922">2 warnings</text>
+    <text x="38" y="574" fill="#8b949e">Static analysis only · no commands executed</text>
+  </g>
+</svg>

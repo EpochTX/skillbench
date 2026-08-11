@@ -1,0 +1,55 @@
+name: New rule
+description: Propose a deterministic SkillBench lint or safety rule.
+title: 'rule: '
+labels: [rule, enhancement, triage]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Instruction quality
+        - Safety
+        - Token efficiency
+        - Portability
+        - Maintainability
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem detected
+      description: Explain why this pattern reduces quality or creates risk.
+    validations:
+      required: true
+  - type: textarea
+    id: positive
+    attributes:
+      label: Minimal true-positive example
+      description: Use synthetic content only. Never paste a real secret.
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: negative
+    attributes:
+      label: Likely false-positive example
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: detection
+    attributes:
+      label: Deterministic detection approach
+      description: Describe thresholds, context signals, and severity.
+    validations:
+      required: true
+  - type: checkboxes
+    id: constraints
+    attributes:
+      label: Constraints
+      options:
+        - label: The rule does not require executing analyzed content.
+          required: true
+        - label: The rule does not require a paid API or hidden LLM judgment.
+          required: true

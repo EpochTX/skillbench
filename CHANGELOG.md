@@ -1,0 +1,30 @@
+# Changelog
+
+All notable changes to SkillBench will be documented in this file. The project follows [Semantic Versioning](https://semver.org/).
+
+## 0.2.0 — 2026-08-11
+
+### Added
+
+- SARIF 2.1.0 reporter with rule metadata, source locations, remediation text, and deterministic fingerprints.
+- GitHub Actions annotation reporter for native error, warning, and notice annotations.
+- `skillbench compare` / `skillbench diff` regression analysis for score, token, issue, and compatibility changes.
+- `skillbench rules [ruleId]` for machine-readable rule discovery and human-readable rule explanations.
+- `--output <path>` support for analysis and comparison reports.
+- Public reporter and comparison APIs for integrations.
+
+### Changed
+
+- Repository metadata now points to the canonical `zjt666666zjt/skillbench` repository.
+- CI now includes an explicit TypeScript typecheck step.
+- Documentation includes SARIF, GitHub annotations, and regression-comparison workflows.
+
+## 0.1.0 — 2026-08-11
+
+### Added
+
+- Static analysis for Agent Skills and five coding-agent instruction formats.
+- Twenty-four deterministic instruction, safety, efficiency, portability, and maintainability rules.
+- Explainable weighted scoring with diminishing deductions for repeated findings.
+- Token, duplication, compatibility, security, suggestion, JSON, CI, and badge output.
+- Cross-platform Node.js 20+ CLI with directory discovery and YAML configuration.

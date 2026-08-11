@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc">
+  <title id="title">SkillBench logo</title>
+  <desc id="desc">A geometric bench and check mark inside a rounded square.</desc>
+  <rect width="96" height="96" rx="20" fill="#111111"/>
+  <path d="M24 29h48v9H24zm0 17h35v9H24zm0 17h48v9H24z" fill="#ffffff" opacity=".94"/>
+  <path d="m58 47 6 6 13-15" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

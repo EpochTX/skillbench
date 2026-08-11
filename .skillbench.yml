@@ -1,0 +1,14 @@
+extends: recommended
+
+rules: {}
+
+score:
+  instruction: 30
+  safety: 25
+  efficiency: 15
+  portability: 20
+  maintainability: 10
+
+ignore:
+  - tests/fixtures/**
+  - vendor/**

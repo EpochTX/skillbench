@@ -1,0 +1,39 @@
+name: New agent adapter
+description: Propose compatibility support for another coding agent.
+title: 'adapter: '
+labels: [adapter, enhancement, triage]
+body:
+  - type: input
+    id: agent
+    attributes:
+      label: Agent name
+    validations:
+      required: true
+  - type: input
+    id: docs
+    attributes:
+      label: Primary specification or official documentation
+      placeholder: https://...
+    validations:
+      required: true
+  - type: textarea
+    id: formats
+    attributes:
+      label: Native files and metadata
+      description: List documented filenames, directory scope, frontmatter, and activation behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: portability
+    attributes:
+      label: Portable and vendor-specific behavior
+      description: Explain what should be SUPPORTED, PARTIAL, UNSUPPORTED, or UNKNOWN.
+    validations:
+      required: true
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: Evidence
+      options:
+        - label: I linked primary documentation for every claimed capability.
+          required: true

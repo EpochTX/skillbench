@@ -1,0 +1,7 @@
+---
+description: TypeScript conventions for source and test files
+globs: "**/*.ts"
+alwaysApply: false
+---
+
+Use strict types and avoid unsafe type assertions.
