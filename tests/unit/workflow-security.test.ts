@@ -1,0 +1,70 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+import YAML from 'yaml';
+import { describe, expect, it } from 'vitest';
+
+const root = path.resolve(import.meta.dirname, '../..');
+const workflowPaths = [
+  '.github/workflows/ci.yml',
+  'examples/github-actions/skillbench-sarif.yml',
+];
+
+function read(relativePath: string): string {
+  return readFileSync(path.join(root, relativePath), 'utf8');
+}
+
+describe('workflow supply-chain policy', () => {
+  it('pins every third-party action in project workflows and examples', () => {
+    for (const workflowPath of workflowPaths) {
+      const workflow = read(workflowPath);
+      const references = [...workflow.matchAll(/uses:\s+[^@\s]+@([^\s#]+)/gu)].map(
+        (match) => match[1] ?? '',
+      );
+
+      expect(references.length, `${workflowPath} should use actions`).toBeGreaterThan(
+        0,
+      );
+      for (const reference of references) {
+        expect(reference, `${workflowPath} contains an unpinned action`).toMatch(
+          /^[0-9a-f]{40}$/u,
+        );
+      }
+    }
+  });
+
+  it('does not persist checkout credentials in project CI', () => {
+    const workflow = read('.github/workflows/ci.yml');
+    const checkoutCount = [...workflow.matchAll(/uses:\s+actions\/checkout@/gu)].length;
+    const disabledCredentialCount = [
+      ...workflow.matchAll(/persist-credentials:\s+false/gu),
+    ].length;
+
+    expect(checkoutCount).toBeGreaterThan(0);
+    expect(disabledCredentialCount).toBe(checkoutCount);
+  });
+
+  it('configures weekly dependency updates for packages and actions', () => {
+    const config = YAML.parse(read('.github/dependabot.yml')) as {
+      version: number;
+      updates: {
+        'package-ecosystem': string;
+        schedule: { interval: string };
+      }[];
+    };
+
+    expect(config.version).toBe(2);
+    expect(config.updates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          'package-ecosystem': 'npm',
+          schedule: { interval: 'weekly' },
+        }),
+        expect.objectContaining({
+          'package-ecosystem': 'github-actions',
+          schedule: { interval: 'weekly' },
+        }),
+      ]),
+    );
+  });
+});

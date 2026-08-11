@@ -9,10 +9,15 @@ All notable changes to SkillBench will be documented in this file. The project f
 - CI now smoke-tests the built `dist/cli.js` executable on Node.js 20, Node.js 22, macOS, and Windows.
 - Publishable package metadata now includes README-linked documentation and SVG assets.
 - Release verification includes a dry-run package check and pre-publish quality gates.
+- GitHub Actions dependencies are pinned to immutable full commit SHAs, and checkout credentials are not persisted after repository setup.
+- Dependabot checks npm/pnpm and GitHub Actions dependencies weekly.
+- Superseded CI runs for the same pull request or branch are cancelled automatically.
+- The copy-paste SARIF workflow uses pinned Actions and an immutable SkillBench v0.2.0 source snapshot.
 
 ### Fixed
 
 - The terminal demo no longer advertises the unpublished `npx skillbench-ai` command.
+- The SARIF workflow example no longer tries to install the unpublished npm package.
 
 ## 0.2.0 — 2026-08-11
 
