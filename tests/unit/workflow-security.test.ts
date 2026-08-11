@@ -45,10 +45,10 @@ describe('workflow supply-chain policy', () => {
   it('configures weekly dependency updates for packages and actions', () => {
     const config = YAML.parse(read('.github/dependabot.yml')) as {
       version: number;
-      updates: Array<{
+      updates: {
         'package-ecosystem': string;
         schedule: { interval: string };
-      }>;
+      }[];
     };
 
     expect(config.version).toBe(2);
