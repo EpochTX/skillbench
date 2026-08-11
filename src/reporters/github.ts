@@ -37,10 +37,7 @@ function annotationCommand(severity: Severity): 'notice' | 'warning' | 'error' {
 }
 
 function escapeData(value: string): string {
-  return value
-    .replaceAll('%', '%25')
-    .replaceAll('\r', '%0D')
-    .replaceAll('\n', '%0A');
+  return value.replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
 }
 
 function escapeProperty(value: string): string {
