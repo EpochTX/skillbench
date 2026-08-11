@@ -37,8 +37,6 @@ describe('release metadata', () => {
   it('keeps canonical repository and release checks configured', () => {
     expect(PROJECT_URL).toBe('https://github.com/EpochTX/skillbench');
     expect(packageJson.repository.url).toBe(`git+${PROJECT_URL}.git`);
-    expect(packageJson.scripts['release:check']).toBe(
-      'pnpm verify && pnpm pack:check',
-    );
+    expect(packageJson.scripts['release:check']).toBe('pnpm verify && pnpm pack:check');
   });
 });
