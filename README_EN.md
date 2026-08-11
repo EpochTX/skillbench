@@ -133,13 +133,13 @@ All deductions are present in the machine-readable report.
 
 The v0.2 recommended profile contains **24 deterministic rules**:
 
-| Range           | Category            | Focus                                                                    |
-| --------------- | ------------------- | ------------------------------------------------------------------------ |
+| Range           | Category            | Focus                                                                     |
+| --------------- | ------------------- | ------------------------------------------------------------------------- |
 | `SB001`–`SB007` | Instruction quality | Length, duplication, conflicts, vague language, purpose, priority markers |
-| `SB100`–`SB106` | Safety              | Dangerous commands, secrets, credential paths, execution, injection     |
+| `SB100`–`SB106` | Safety              | Dangerous commands, secrets, credential paths, execution, injection       |
 | `SB200`–`SB203` | Token efficiency    | Duplicate tokens, repeated directives, Markdown noise, oversized examples |
-| `SB300`–`SB302` | Maintainability     | Missing structure, oversized sections, oversized paragraphs             |
-| `SB400`–`SB402` | Portability         | Skill metadata, vendor-specific fields, Cursor/Copilot scope metadata    |
+| `SB300`–`SB302` | Maintainability     | Missing structure, oversized sections, oversized paragraphs               |
+| `SB400`–`SB402` | Portability         | Skill metadata, vendor-specific fields, Cursor/Copilot scope metadata     |
 
 ```bash
 skillbench rules
@@ -163,13 +163,13 @@ Instruction Density         46.8%
 
 Platform-specific behavior is isolated in adapters instead of being scattered across the parser and rule engine.
 
-| Agent          | Portable Skill | Native instruction inputs                                      |
-| -------------- | -------------- | -------------------------------------------------------------- |
-| OpenAI Codex   | `SKILL.md`     | `AGENTS.md`                                                    |
-| Claude Code    | `SKILL.md`     | `CLAUDE.md`                                                    |
-| Cursor         | `SKILL.md`     | `AGENTS.md`, `.cursor/rules/*.mdc`; `.cursorrules` is legacy   |
-| Gemini CLI     | `SKILL.md`     | `GEMINI.md`                                                    |
-| GitHub Copilot | `SKILL.md`     | `.github/copilot-instructions.md`, scoped `.instructions.md`   |
+| Agent          | Portable Skill | Native instruction inputs                                    |
+| -------------- | -------------- | ------------------------------------------------------------ |
+| OpenAI Codex   | `SKILL.md`     | `AGENTS.md`                                                  |
+| Claude Code    | `SKILL.md`     | `CLAUDE.md`                                                  |
+| Cursor         | `SKILL.md`     | `AGENTS.md`, `.cursor/rules/*.mdc`; `.cursorrules` is legacy |
+| Gemini CLI     | `SKILL.md`     | `GEMINI.md`                                                  |
+| GitHub Copilot | `SKILL.md`     | `.github/copilot-instructions.md`, scoped `.instructions.md` |
 
 Compatibility states are `SUPPORTED`, `PARTIAL`, `UNSUPPORTED`, and `UNKNOWN`.
 
@@ -306,14 +306,14 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Nev
 
 ## Architecture
 
-| Module       | Responsibility                                                    | Extension point                       |
-| ------------ | ----------------------------------------------------------------- | ------------------------------------- |
-| `parser/`    | Frontmatter, paragraph, section, and source-location parsing      | New text formats                      |
-| `rules/`     | Deterministic findings grouped by category                        | New rules                             |
-| `core/`      | Analysis, tokens, rule engine, scoring, and regression comparison | New analyzers or scoring profiles     |
-| `adapters/`  | Native-entry detection and compatibility reasoning                | New coding-agent adapters             |
-| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, and badge output       | New report formats                    |
-| `cli/`       | Commands, options, CI policy, and user-facing errors              | New workflows                         |
+| Module       | Responsibility                                                    | Extension point                   |
+| ------------ | ----------------------------------------------------------------- | --------------------------------- |
+| `parser/`    | Frontmatter, paragraph, section, and source-location parsing      | New text formats                  |
+| `rules/`     | Deterministic findings grouped by category                        | New rules                         |
+| `core/`      | Analysis, tokens, rule engine, scoring, and regression comparison | New analyzers or scoring profiles |
+| `adapters/`  | Native-entry detection and compatibility reasoning                | New coding-agent adapters         |
+| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, and badge output       | New report formats                |
+| `cli/`       | Commands, options, CI policy, and user-facing errors              | New workflows                     |
 
 Typed public APIs are exported from `src/index.ts`.
 
