@@ -63,16 +63,6 @@ describe('workflow supply-chain policy', () => {
         expect.objectContaining({
           'package-ecosystem': 'npm',
           schedule: { interval: 'weekly' },
-          ignore: expect.arrayContaining([
-            {
-              'dependency-name': 'chalk',
-              'update-types': ['version-update:semver-major'],
-            },
-            {
-              'dependency-name': 'commander',
-              'update-types': ['version-update:semver-major'],
-            },
-          ]),
         }),
         expect.objectContaining({
           'package-ecosystem': 'github-actions',
@@ -80,5 +70,19 @@ describe('workflow supply-chain policy', () => {
         }),
       ]),
     );
+
+    const npmUpdate = config.updates.find(
+      (update) => update['package-ecosystem'] === 'npm',
+    );
+    expect(npmUpdate?.ignore).toEqual([
+      {
+        'dependency-name': 'chalk',
+        'update-types': ['version-update:semver-major'],
+      },
+      {
+        'dependency-name': 'commander',
+        'update-types': ['version-update:semver-major'],
+      },
+    ]);
   });
 });
