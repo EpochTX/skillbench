@@ -69,7 +69,10 @@ describe('machine reporters', () => {
           ruleId: string;
           partialFingerprints: Record<string, string>;
           locations: {
-            physicalLocation: { region: { startLine: number } };
+            physicalLocation: {
+              artifactLocation: { uri: string };
+              region: { startLine: number };
+            };
           }[];
         }[];
       }[];
@@ -85,6 +88,29 @@ describe('machine reporters', () => {
     expect(
       rendered.runs[0]?.results[0]?.locations[0]?.physicalLocation.region.startLine,
     ).toBe(12);
+  });
+
+  it('encodes reserved SARIF artifact path characters as path data', () => {
+    const baseIssue = report.issues[0];
+    if (!baseIssue) throw new Error('Expected reporter fixture issue.');
+    const rendered = JSON.parse(
+      new SarifReporter().render({
+        ...report,
+        issues: [{ ...baseIssue, path: 'dir/a#b?c d.md' }],
+      }),
+    ) as {
+      runs: {
+        results: {
+          locations: {
+            physicalLocation: { artifactLocation: { uri: string } };
+          }[];
+        }[];
+      }[];
+    };
+
+    expect(
+      rendered.runs[0]?.results[0]?.locations[0]?.physicalLocation.artifactLocation.uri,
+    ).toBe('dir/a%23b%3Fc%20d.md');
   });
 
   it('renders native GitHub Actions annotations', () => {
