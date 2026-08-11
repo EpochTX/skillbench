@@ -73,7 +73,7 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.4.1",
-    "commander": "^14.0.0",
+    "commander": "^15.0.0",
     "minimatch": "^10.0.3",
     "yaml": "^2.8.1",
     "zod": "^4.0.17"
