@@ -3,12 +3,7 @@ import { createHash } from 'node:crypto';
 import type { Issue } from './types.js';
 
 export function issueIdentity(issue: Issue): string {
-  return [
-    issue.ruleId,
-    normalizePath(issue.path),
-    issue.severity,
-    issue.message.trim(),
-  ].join('|');
+  return [issue.ruleId, normalizePath(issue.path), issue.message.trim()].join('|');
 }
 
 export function issueFingerprint(issue: Issue): string {

@@ -129,7 +129,7 @@ function diffIssues(
 function bucketIssues(issues: readonly Issue[]): Map<string, Issue[]> {
   const buckets = new Map<string, Issue[]>();
   for (const issue of issues) {
-    const key = issueIdentity(issue);
+    const key = `${issueIdentity(issue)}|${issue.severity}`;
     const bucket = buckets.get(key);
     if (bucket) bucket.push(issue);
     else buckets.set(key, [issue]);

@@ -91,5 +91,9 @@ function resultMessage(issue: Issue): string {
 }
 
 function artifactUri(filePath: string): string {
-  return encodeURI(filePath.replaceAll('\\', '/'));
+  return filePath
+    .replaceAll('\\', '/')
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
 }
