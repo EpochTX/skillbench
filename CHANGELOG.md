@@ -13,6 +13,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 - Dependabot checks npm/pnpm and GitHub Actions dependencies weekly.
 - Superseded CI runs for the same pull request or branch are cancelled automatically.
 - The copy-paste SARIF workflow uses pinned Actions and an immutable SkillBench v0.2.0 source snapshot.
+- Maintainer release preparation is documented in `RELEASING.md`, with `pnpm release:check` as the complete local release gate.
+- Automated tests keep package, runtime, README, demo, changelog, and canonical repository release metadata aligned.
 
 ### Fixed
 
