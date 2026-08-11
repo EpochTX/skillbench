@@ -31,6 +31,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - name: Show Prettier diff on lint failure
+        if: failure() && matrix.node == 20
+        run: |
+          pnpm exec prettier --write tests/unit/release-metadata.test.ts
+          git diff -- tests/unit/release-metadata.test.ts
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
