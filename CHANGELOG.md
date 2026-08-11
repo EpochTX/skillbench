@@ -2,6 +2,18 @@
 
 All notable changes to SkillBench will be documented in this file. The project follows [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+
+- CI now smoke-tests the built `dist/cli.js` executable on Node.js 20, Node.js 22, macOS, and Windows.
+- Publishable package metadata now includes README-linked documentation and SVG assets.
+- Release verification includes a dry-run package check and pre-publish quality gates.
+
+### Fixed
+
+- The terminal demo no longer advertises the unpublished `npx skillbench-ai` command.
+
 ## 0.2.0 — 2026-08-11
 
 ### Added
