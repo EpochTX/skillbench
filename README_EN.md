@@ -208,7 +208,7 @@ skillbench lint . --format github --ci --fail-on error
 
 ## GitHub Actions
 
-Until the npm package is published, CI can run SkillBench directly from source. The example below installs the tool outside the target workspace so the tool repository is not included in discovery:
+Until the npm package is published, CI can run SkillBench directly from source. The example below installs the tool outside the target workspace and pins both Actions and the verified v0.2.0 source snapshot so later `main` changes cannot silently alter an existing CI setup:
 
 ```yaml
 name: SkillBench
@@ -225,19 +225,23 @@ jobs:
   skillbench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
           version: 10.34.5
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 20
-      - name: Install SkillBench from source
+      - name: Install SkillBench v0.2.0 from source
         run: |
-          git clone --depth 1 https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git clone --no-checkout https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git -C "$RUNNER_TEMP/skillbench" checkout --detach 35e2415a612f838bd08bcb3f6c536e92be60d221
           pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+          pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Check agent instructions
-        run: pnpm --dir "$RUNNER_TEMP/skillbench" dev -- scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 SkillBench's own CI validates Node.js 20 and 22 on Ubuntu and runs tests/builds on macOS and Windows.
