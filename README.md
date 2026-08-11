@@ -254,7 +254,7 @@ skillbench lint . --format github --ci --fail-on error
 
 ## CI 使用方式
 
-npm 包正式发布前，可以直接从源码在 CI 中运行。下面的示例把工具检出到工作区之外，避免把 SkillBench 自身的文件混入扫描目标：
+npm 包正式发布前，可以直接从源码在 CI 中运行。下面的示例把工具检出到工作区之外，并固定到已验证的 v0.2.0 源码快照，避免把 SkillBench 自身文件混入扫描目标，也避免后续 `main` 变化影响既有 CI：
 
 ```yaml
 name: SkillBench
@@ -271,19 +271,23 @@ jobs:
   skillbench:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
         with:
           version: 10.34.5
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 20
-      - name: Install SkillBench from source
+      - name: Install SkillBench v0.2.0 from source
         run: |
-          git clone --depth 1 https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git clone --no-checkout https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git -C "$RUNNER_TEMP/skillbench" checkout --detach 35e2415a612f838bd08bcb3f6c536e92be60d221
           pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+          pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Check agent instructions
-        run: pnpm --dir "$RUNNER_TEMP/skillbench" dev -- scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 仓库自身的 `.github/workflows/ci.yml` 会在 Ubuntu 上验证 Node.js 20 和 22，并在 macOS、Windows 上执行跨平台测试和构建。
