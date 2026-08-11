@@ -44,12 +44,16 @@ describe('workflow supply-chain policy', () => {
     expect(disabledCredentialCount).toBe(checkoutCount);
   });
 
-  it('configures weekly dependency updates for packages and actions', () => {
+  it('configures weekly dependency updates and preserves Node 20 majors', () => {
     const config = YAML.parse(read('.github/dependabot.yml')) as {
       version: number;
       updates: {
         'package-ecosystem': string;
         schedule: { interval: string };
+        ignore?: {
+          'dependency-name': string;
+          'update-types': string[];
+        }[];
       }[];
     };
 
@@ -66,5 +70,19 @@ describe('workflow supply-chain policy', () => {
         }),
       ]),
     );
+
+    const npmUpdate = config.updates.find(
+      (update) => update['package-ecosystem'] === 'npm',
+    );
+    expect(npmUpdate?.ignore).toEqual([
+      {
+        'dependency-name': 'chalk',
+        'update-types': ['version-update:semver-major'],
+      },
+      {
+        'dependency-name': 'commander',
+        'update-types': ['version-update:semver-major'],
+      },
+    ]);
   });
 });

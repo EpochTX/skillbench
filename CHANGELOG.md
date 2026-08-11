@@ -10,7 +10,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 - Publishable package metadata now includes README-linked documentation and SVG assets.
 - Release verification includes a dry-run package check and pre-publish quality gates.
 - GitHub Actions dependencies are pinned to immutable full commit SHAs, and checkout credentials are not persisted after repository setup.
-- Dependabot checks npm/pnpm and GitHub Actions dependencies weekly.
+- Repository CI uses `actions/checkout` 7.0.1 and `actions/setup-node` 7.0.0 while continuing to test the supported Node.js 20 and 22 runtimes.
+- Dependabot checks npm/pnpm and GitHub Actions dependencies weekly and explicitly defers runtime dependency majors that require dropping Node.js 20 support.
 - Superseded CI runs for the same pull request or branch are cancelled automatically.
 - Copy-paste GitHub Actions examples use pinned Actions and an immutable SkillBench v0.2.0 source snapshot.
 - Maintainer release preparation is documented in `RELEASING.md`, with `pnpm release:check` as the complete local release gate.

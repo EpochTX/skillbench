@@ -6,6 +6,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      - dependency-name: chalk
+        update-types:
+          - version-update:semver-major
+      - dependency-name: commander
+        update-types:
+          - version-update:semver-major
     groups:
       npm-minor-and-patch:
         patterns:
