@@ -40,6 +40,7 @@
     "typecheck": "tsc --noEmit",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:dist",
     "pack:check": "pnpm pack --dry-run --json",
+    "release:check": "pnpm verify && pnpm pack:check",
     "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test",
     "prepack": "pnpm build && pnpm test:dist"
   },
