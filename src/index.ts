@@ -32,4 +32,4 @@ export type {
   Severity,
   TokenMetrics,
 } from './core/types.js';
-export { PROJECT_URL, VERSION } from './version.js';
+export { PROJECT_URL, SCHEMA_VERSION, VERSION } from './version.js';

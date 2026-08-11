@@ -15,7 +15,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
-- Repository metadata now points to the canonical `zjt666666zjt/skillbench` repository.
+- Repository metadata now points to the canonical `EpochTX/skillbench` repository.
 - CI now includes an explicit TypeScript typecheck step.
 - Documentation includes SARIF, GitHub annotations, and regression-comparison workflows.
 

@@ -8,59 +8,72 @@
 
 <h1 align="center">SkillBench</h1>
 
-<p align="center"><strong>The open benchmark, linter and compatibility checker for AI Agent Skills.</strong></p>
-
-<p align="center">SkillBench gives agent instructions a test suite.</p>
+<p align="center"><strong>The open benchmark, linter, and compatibility checker for AI Agent Skills.</strong></p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/skillbench-ai"><img alt="npm" src="https://img.shields.io/npm/v/skillbench-ai?style=flat-square"></a>
   <a href="https://github.com/EpochTX/skillbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/EpochTX/skillbench/ci.yml?branch=main&style=flat-square&label=CI"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black?style=flat-square"></a>
   <img alt="Node 20 or newer" src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white">
-  <img alt="SkillBench score 100 out of 100" src="https://img.shields.io/badge/SkillBench-100%2F100-brightgreen?style=flat-square">
+  <img alt="SkillBench version 0.2.0" src="https://img.shields.io/badge/version-0.2.0-blue?style=flat-square">
 </p>
-
-```console
-$ npx skillbench-ai scan SKILL.md
-```
 
 ![SkillBench terminal demo](docs/demo.svg)
 
-> The demo score is illustrative. Every real score includes exact deductions and rule IDs.
+> The `skillbench-ai` npm package has not been formally published yet. Run v0.2.0 from source for now; `npx skillbench-ai` and global-install instructions will be added after publication.
 
-## Why SkillBench?
+## What is SkillBench?
 
-Agent Skills are becoming part of the software stack. But today there is no simple answer to: Is this skill safe? Is it portable? Is it bloated? Does it work across agents? Is it actually well written?
+Agent Skills, `AGENTS.md`, `CLAUDE.md`, Cursor Rules, and similar instruction files are becoming part of AI engineering projects. Unlike source code, they often lack repeatable quality checks, security rules, regression analysis, CI gates, and machine-readable reports.
 
-SkillBench answers those questions in seconds with deterministic static analysis—no paid API, no hidden model judge, and no execution of the files it scans.
+SkillBench provides deterministic local static analysis for these files:
 
-- **Useful:** one command checks quality, safety, token cost, portability, and maintainability.
-- **Trustworthy:** every deduction points to a rule, severity, location, evidence, and remediation.
-- **Shareable:** terminal, stable JSON, SARIF, GitHub Actions annotations, CI exit codes, and shields.io Markdown badges are built in.
+- **Quality checks:** detect unclear scope, vague wording, duplication, conflicting instructions, and priority overuse.
+- **Security checks:** detect credential access, prompt injection, dangerous shell patterns, arbitrary execution, and destructive Git/database operations.
+- **Token efficiency:** estimate token usage, duplicated tokens, reduction opportunities, and instruction density.
+- **Cross-agent compatibility:** evaluate instructions for OpenAI Codex, Claude Code, Cursor, Gemini CLI, and GitHub Copilot.
+- **Explainable scoring:** every deduction is tied to a rule ID, severity, and reason.
+- **Regression analysis:** compare two revisions and separate introduced, resolved, and unchanged findings.
+- **CI / SARIF:** emit JSON, SARIF 2.1.0, GitHub Actions annotations, and stable exit codes.
+
+The default analyzer runs locally, **never executes scanned instructions, and does not send source text to a network service**.
 
 ## Quick start
 
-```bash
-# No installation
-npx skillbench-ai scan SKILL.md
+### Run from source
 
-# Or install globally
-npm install -g skillbench-ai
-skillbench scan .
+```bash
+git clone https://github.com/EpochTX/skillbench.git
+cd skillbench
+
+corepack enable
+pnpm install --frozen-lockfile
+pnpm build
+
+node dist/cli.js scan SKILL.md
 ```
 
-The npm package is `skillbench-ai`; the installed executable remains `skillbench`. The unscoped npm name `skillbench` is owned by an unrelated existing package.
+Development mode:
+
+```bash
+pnpm dev -- scan SKILL.md
+```
+
+After npm publication, the package name will be `skillbench-ai` and the installed executable will remain `skillbench`.
+
+## Discovered files
 
 Directory scans automatically discover:
 
-- `SKILL.md`
-- `AGENTS.md`
-- `CLAUDE.md`
-- `GEMINI.md`
-- `.cursorrules`
-- `.cursor/rules/**/*.mdc`
-- `.github/copilot-instructions.md`
-- `.github/instructions/**/*.instructions.md`
+```text
+SKILL.md
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules
+.cursor/rules/**/*.mdc
+.github/copilot-instructions.md
+.github/instructions/**/*.instructions.md
+```
 
 SkillBench supports Linux, macOS, and Windows on Node.js 20 or newer.
 
@@ -68,19 +81,20 @@ SkillBench supports Linux, macOS, and Windows on Node.js 20 or newer.
 
 | Command                               | Purpose                                                       |
 | ------------------------------------- | ------------------------------------------------------------- |
-| `skillbench scan [target]`            | Full score, compatibility, token, and issue report            |
-| `skillbench score [target]`           | Overall and per-category scores only                          |
-| `skillbench lint [target]`            | Every rule finding with location and suggestion               |
-| `skillbench fix [target] --dry-run`   | Suggested fixes; v0.2 never writes the target                 |
-| `skillbench compat [target]`          | Five-agent compatibility report with reasons                  |
-| `skillbench token [target]`           | Characters, words, estimated tokens, duplication, and density |
+| `skillbench scan [target]`            | Full score, issue, token, and compatibility analysis          |
+| `skillbench score [target]`           | Overall and per-category scores                               |
+| `skillbench lint [target]`            | Rule findings with locations and remediation                  |
 | `skillbench security [target]`        | Security-focused findings                                     |
-| `skillbench compare <before> <after>` | Score, token, issue, and compatibility regression diff        |
-| `skillbench rules [ruleId]`           | List rules or explain one rule                                |
+| `skillbench token [target]`           | Token estimate, duplication, savings, and density             |
+| `skillbench compat [target]`          | Five-agent compatibility analysis                             |
+| `skillbench compare <before> <after>` | Score, token, issue, and compatibility regression comparison  |
+| `skillbench diff <before> <after>`    | Alias of `compare`                                            |
+| `skillbench rules [ruleId]`           | List rules or inspect one rule                                |
+| `skillbench fix [target] --dry-run`   | Show remediation suggestions; v0.2 does not modify the target |
 | `skillbench init [directory]`         | Create `.skillbench.yml`                                      |
-| `skillbench badge [target]`           | Generate a static shields.io Markdown badge                   |
+| `skillbench badge [target]`           | Generate a shields.io Markdown badge                          |
 
-Analysis commands support `--format terminal`, `json`, `sarif`, or `github`. Use `--output path` to write a rendered report directly to a file, `--config path/to/config.yml` to select a config explicitly, and `--no-color` for plain terminal output.
+Analysis commands support `terminal`, `json`, `sarif`, and `github` output formats.
 
 ```bash
 skillbench scan . --format json --output skillbench-report.json
@@ -89,77 +103,54 @@ skillbench scan . --format sarif --output skillbench.sarif
 skillbench compare ./before ./after --ci --fail-on error
 ```
 
-Exit codes are stable:
+Stable exit codes:
 
 | Code | Meaning                                                    |
-| ---- | ---------------------------------------------------------- |
-| `0`  | Analysis completed and the CI threshold was not reached    |
-| `1`  | `--ci` threshold reached (`critical` by default)           |
-| `2`  | Invalid arguments, configuration, target, or parse failure |
+| ---: | ---------------------------------------------------------- |
+|  `0` | Analysis completed and the CI threshold was not reached    |
+|  `1` | The configured `--ci` severity threshold was reached       |
+|  `2` | Invalid arguments, configuration, target, or parse failure |
+
+`--fail-on` accepts `warning`, `error`, or `critical`.
 
 ## Scoring
 
-The default score is weighted to keep ordinary warnings proportionate:
+The default score is a weighted combination of five categories:
 
 | Category            | Weight | What it measures                                                                |
 | ------------------- | -----: | ------------------------------------------------------------------------------- |
-| Instruction Quality |    30% | Scope, clarity, contradictions, vague language, priority hierarchy              |
+| Instruction quality |    30% | Scope, clarity, contradictions, vague language, priority hierarchy              |
 | Safety              |    25% | Destructive actions, secrets, credential access, injection, arbitrary execution |
-| Token Efficiency    |    15% | Estimated tokens, repeated paragraphs, directive repetition, oversized examples |
-| Portability         |    20% | Open Skill metadata, platform-native discovery, vendor extensions               |
-| Maintainability     |    10% | Navigable structure, section size, paragraph density                            |
+| Token efficiency    |    15% | Estimated tokens, repeated paragraphs, directive repetition, oversized examples |
+| Portability         |    20% | Agent Skills metadata, native entry points, vendor extensions                   |
+| Maintainability     |    10% | Document structure, section size, paragraph density, navigation                 |
 
-Severity supplies the base deduction, while each rule supplies a documented multiplier. Repeated findings from the same rule use diminishing deductions (`100%`, `50%`, then `25%`) so a repeated ordinary warning cannot collapse the score. Category scores never fall below zero; the overall score is their configured weighted mean. A critical safety result also applies an explicit overall gate: one or two critical findings cap the score at `59.9`, while three or more cap it at `39.9`. The cap and reason are included in JSON instead of being hidden inside the formula.
+Repeated findings from the same rule use diminishing deductions (`100% → 50% → 25%`) so repeated ordinary warnings do not collapse the score. Critical safety findings apply explicit overall caps: one or two cap the score at `59.9`; three or more cap it at `39.9`.
 
-Every deduction is present in JSON:
-
-```json
-{
-  "ruleId": "SB102",
-  "severity": "error",
-  "points": 8,
-  "reason": "The agent is instructed to access a credential-bearing path."
-}
-```
+All deductions are present in the machine-readable report.
 
 ## Rules
 
-The recommended profile contains 24 deterministic rules.
+The v0.2 recommended profile contains **24 deterministic rules**:
 
-| ID      | Category        | Check                                                                         |
-| ------- | --------------- | ----------------------------------------------------------------------------- |
-| `SB001` | Instruction     | Instruction is too short to define reliable behavior                          |
-| `SB002` | Instruction     | Instruction exceeds evidence-based line/token guidance                        |
-| `SB003` | Instruction     | Exact or highly similar paragraphs using normalized n-gram Jaccard similarity |
-| `SB004` | Instruction     | Known mutually incompatible directive pairs                                   |
-| `SB005` | Instruction     | High density—not isolated use—of vague qualifiers                             |
-| `SB006` | Instruction     | Missing task purpose or triggering condition                                  |
-| `SB007` | Instruction     | Excessive `MUST` / `ALWAYS` / `NEVER` priority markers                        |
-| `SB100` | Safety          | Destructive shell primitives with context-sensitive severity                  |
-| `SB101` | Safety          | API keys, tokens, access keys, and private-key blocks; evidence is redacted   |
-| `SB102` | Safety          | Directed access to environment, SSH, cloud credential, or cookie stores       |
-| `SB103` | Safety          | Arbitrary input reaching eval, exec, or shell interpolation                   |
-| `SB104` | Safety          | Direct prompt override versus quoted defensive examples                       |
-| `SB105` | Safety          | Unverified network download piped to an interpreter                           |
-| `SB106` | Safety          | Force push, hard reset, database drop, or production deletion without a gate  |
-| `SB200` | Efficiency      | High duplicated-token ratio                                                   |
-| `SB201` | Efficiency      | Repeated modal directives and safety slogans                                  |
-| `SB202` | Efficiency      | Decorative or empty Markdown noise                                            |
-| `SB203` | Efficiency      | Fenced examples dominate loaded context                                       |
-| `SB300` | Maintainability | Long instruction lacks navigable sections                                     |
-| `SB301` | Maintainability | Oversized section                                                             |
-| `SB302` | Maintainability | Oversized paragraph                                                           |
-| `SB400` | Portability     | Invalid open Agent Skills metadata                                            |
-| `SB401` | Portability     | Vendor-specific Skill frontmatter                                             |
-| `SB402` | Portability     | Missing Cursor MDC or Copilot path-scope metadata                             |
+| Range           | Category            | Focus                                                                     |
+| --------------- | ------------------- | ------------------------------------------------------------------------- |
+| `SB001`–`SB007` | Instruction quality | Length, duplication, conflicts, vague language, purpose, priority markers |
+| `SB100`–`SB106` | Safety              | Dangerous commands, secrets, credential paths, execution, injection       |
+| `SB200`–`SB203` | Token efficiency    | Duplicate tokens, repeated directives, Markdown noise, oversized examples |
+| `SB300`–`SB302` | Maintainability     | Missing structure, oversized sections, oversized paragraphs               |
+| `SB400`–`SB402` | Portability         | Skill metadata, vendor-specific fields, Cursor/Copilot scope metadata     |
 
-Rules can be disabled or have their severity overridden independently.
+```bash
+skillbench rules
+skillbench rules SB102
+```
+
+Rules can be disabled or have their severity overridden in `.skillbench.yml`.
 
 ## Token analysis
 
-Version 0.2 uses a local, language-aware estimate: Latin letters and numbers are approximated near four characters per token; CJK text and punctuation receive separate coefficients. It is an estimate, not a claim about a specific model tokenizer.
-
-Duplicate tokens are measured from later exact or highly similar paragraphs. SkillBench reports the algorithm and reduction estimate instead of pretending that every repeated token can be removed safely.
+v0.2 uses a local, language-aware token estimate. Latin text, numbers, CJK characters, and punctuation use separate approximate coefficients. It is an engineering estimate, not a claim about a specific model tokenizer.
 
 ```text
 Estimated Tokens           2,841
@@ -168,25 +159,98 @@ Potential Reduction         11.2%
 Instruction Density         46.8%
 ```
 
-## Compatibility
+## Agent compatibility
 
-Adapters isolate platform behavior from the rule engine. `SUPPORTED` means the platform has a documented native or open-standard path; `PARTIAL` names a known limitation; `UNSUPPORTED` means the current filename or metadata is not a native entry; `UNKNOWN` is used when SkillBench cannot establish behavior reliably.
+Platform-specific behavior is isolated in adapters instead of being scattered across the parser and rule engine.
 
-| Agent          | Portable Skill | Native instruction inputs in v0.2                                                                         |
-| -------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
-| OpenAI Codex   | `SKILL.md`     | `AGENTS.md`                                                                                               |
-| Claude Code    | `SKILL.md`     | `CLAUDE.md`                                                                                               |
-| Cursor         | `SKILL.md`     | `AGENTS.md`, `.cursor/rules/*.mdc`; `.cursorrules` is reported as legacy                                  |
-| Gemini CLI     | `SKILL.md`     | `GEMINI.md`                                                                                               |
-| GitHub Copilot | `SKILL.md`     | `.github/copilot-instructions.md`, scoped `.instructions.md`; agent instruction support varies by surface |
+| Agent          | Portable Skill | Native instruction inputs                                    |
+| -------------- | -------------- | ------------------------------------------------------------ |
+| OpenAI Codex   | `SKILL.md`     | `AGENTS.md`                                                  |
+| Claude Code    | `SKILL.md`     | `CLAUDE.md`                                                  |
+| Cursor         | `SKILL.md`     | `AGENTS.md`, `.cursor/rules/*.mdc`; `.cursorrules` is legacy |
+| Gemini CLI     | `SKILL.md`     | `GEMINI.md`                                                  |
+| GitHub Copilot | `SKILL.md`     | `.github/copilot-instructions.md`, scoped `.instructions.md` |
 
-Compatibility behavior is grounded in the [Agent Skills specification](https://agentskills.io/specification), [Codex Skills and AGENTS.md documentation](https://developers.openai.com/codex/customization/overview), [Claude Code Skills documentation](https://docs.anthropic.com/en/docs/claude-code/skills), [Cursor Skills and Rules documentation](https://cursor.com/docs/skills), [Gemini CLI Skills documentation](https://geminicli.com/docs/cli/skills/), and [GitHub Copilot custom-instruction documentation](https://docs.github.com/copilot/customizing-copilot/adding-custom-instructions-for-github-copilot).
+Compatibility states are `SUPPORTED`, `PARTIAL`, `UNSUPPORTED`, and `UNKNOWN`.
 
-All platform-specific checks live in `src/adapters/`; the parser and rule engine contain no scattered agent branches.
+## Compare / diff
+
+`compare` and `diff` analyze two targets with the same configuration and report:
+
+- overall and per-category score changes;
+- token and file-count changes;
+- introduced findings;
+- resolved findings;
+- unchanged finding count;
+- agent compatibility changes.
+
+```bash
+skillbench compare ./baseline ./candidate
+skillbench diff ./baseline ./candidate --format json
+skillbench compare ./baseline ./candidate --ci --fail-on error
+```
+
+In CI mode, only **introduced findings** are evaluated against the failure threshold.
+
+## SARIF and GitHub Actions annotations
+
+SARIF output follows SARIF 2.1.0 and includes rule metadata, source locations, stable fingerprints, severity, category, and remediation text.
+
+```bash
+skillbench scan . --format sarif --output skillbench.sarif
+```
+
+The `github` reporter emits native `::error`, `::warning`, and `::notice` workflow commands:
+
+```bash
+skillbench lint . --format github --ci --fail-on error
+```
+
+## GitHub Actions
+
+Until the npm package is published, CI can run SkillBench directly from source. The example below installs the tool outside the target workspace so the tool repository is not included in discovery:
+
+```yaml
+name: SkillBench
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  skillbench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - name: Install SkillBench from source
+        run: |
+          git clone --depth 1 https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+      - name: Check agent instructions
+        run: pnpm --dir "$RUNNER_TEMP/skillbench" dev -- scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+```
+
+SkillBench's own CI validates Node.js 20 and 22 on Ubuntu and runs tests/builds on macOS and Windows.
 
 ## Configuration
 
-Run `skillbench init`, then edit `.skillbench.yml`:
+Initialize a config file:
+
+```bash
+skillbench init
+```
+
+Example `.skillbench.yml`:
 
 ```yaml
 extends: recommended
@@ -207,11 +271,11 @@ ignore:
   - vendor/**
 ```
 
-Weights may use any non-negative scale and are normalized when the overall score is calculated. Unknown keys and invalid severities fail with a configuration error instead of being silently ignored.
+Weights may use any non-negative scale and are normalized for the overall score. Unknown keys, unknown rule IDs, and invalid severities fail with a configuration error instead of being silently ignored.
 
-## JSON report
+## JSON report and schema
 
-The versioned JSON shape is intended for CI and integrations:
+The v0.2.0 report schema version is currently `0.1`:
 
 ```json
 {
@@ -227,97 +291,79 @@ The versioned JSON shape is intended for CI and integrations:
 }
 ```
 
-Report formats implement the small `Reporter` interface. JSON remains the stable integration format; SARIF 2.1.0 maps deterministic findings to code-scanning locations, while the `github` format emits native GitHub Actions workflow annotations.
-
-## Regression comparison
-
-`skillbench compare` (alias: `diff`) analyzes two targets with the same configuration and reports score deltas, token deltas, introduced/resolved findings, and compatibility changes. In CI mode, only **introduced** findings are considered for the exit threshold, so existing debt does not block unrelated improvements.
-
-```bash
-skillbench compare ./baseline ./candidate
-skillbench diff ./baseline ./candidate --format json
-skillbench compare ./baseline ./candidate --ci --fail-on error
-```
-
-## SARIF and GitHub annotations
-
-SARIF output is compatible with GitHub code scanning and other SARIF 2.1.0 consumers. Findings include rule metadata, source locations, stable fingerprints, SkillBench severity, category, and remediation text.
-
-```bash
-skillbench scan . --format sarif --output skillbench.sarif
-```
-
-For lightweight Actions integration without code scanning, `--format github` emits native `::error`, `::warning`, and `::notice` workflow commands:
-
-```bash
-skillbench lint . --format github --ci --fail-on error
-```
-
-## GitHub Actions
-
-```yaml
-name: SkillBench
-
-on:
-  pull_request:
-  push:
-    branches: [main]
-
-jobs:
-  skillbench:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install SkillBench
-        run: npm install -g skillbench-ai
-      - name: Check agent instructions
-        run: skillbench scan . --ci --fail-on critical
-```
-
-Use `--fail-on warning`, `error`, or `critical` to match your repository's policy. The project itself tests Node.js 20 and 22 in `.github/workflows/ci.yml`.
+Reporters are separate from the analysis core, so new output formats do not require changes to rules or scoring.
 
 ## Security model
 
-- Static analysis only. SkillBench never executes shell, Python, JavaScript, hooks, or scripts from scanned files.
+- Static analysis only. SkillBench does not execute shell, Python, JavaScript, hooks, or scripts from scanned files.
 - Input is treated as untrusted UTF-8 text and capped at 2 MiB per instruction file.
 - Directory discovery does not follow symbolic links.
-- Secret matches pass through central redaction before terminal or JSON output.
-- Defensive examples receive different severity from direct execution instructions when context can be established deterministically.
-- No source text is sent to a network service.
+- Credential-like evidence passes through central redaction before output.
+- Defensive examples and direct execution instructions may receive different severity when context can be determined safely.
+- Source text is not sent to a network service by the default analyzer.
 
-Please report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Never include a real credential in a report.
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Never include a real credential in a report.
 
 ## Architecture
 
-| Module       | Responsibility                                                    | Extension point                       |
-| ------------ | ----------------------------------------------------------------- | ------------------------------------- |
-| `parser/`    | Safe frontmatter, paragraph, section, and source-location parsing | New text formats                      |
-| `rules/`     | Deterministic findings grouped by category                        | Add one typed rule and registry entry |
-| `core/`      | Orchestration, tokens, rule engine, and explainable scoring       | Alternative profiles or analyzers     |
-| `adapters/`  | Platform-native detection and compatibility reasoning             | New coding-agent adapter              |
-| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, and badge presentation | Hosted or third-party reports         |
-| `cli/`       | Commands, options, CI policy, and user-facing errors              | New views and regression workflows    |
+| Module       | Responsibility                                                    | Extension point                   |
+| ------------ | ----------------------------------------------------------------- | --------------------------------- |
+| `parser/`    | Frontmatter, paragraph, section, and source-location parsing      | New text formats                  |
+| `rules/`     | Deterministic findings grouped by category                        | New rules                         |
+| `core/`      | Analysis, tokens, rule engine, scoring, and regression comparison | New analyzers or scoring profiles |
+| `adapters/`  | Native-entry detection and compatibility reasoning                | New coding-agent adapters         |
+| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, and badge output       | New report formats                |
+| `cli/`       | Commands, options, CI policy, and user-facing errors              | New workflows                     |
 
-Public APIs are typed and exported from `src/index.ts`. The analyzer accepts parsed documents and a resolved config, which leaves room for optional future LLM judges without making them part of the trustworthy default score.
+Typed public APIs are exported from `src/index.ts`.
+
+## Project structure
+
+```text
+skillbench/
+├── src/
+│   ├── adapters/
+│   ├── cli/
+│   ├── core/
+│   ├── parser/
+│   ├── reporters/
+│   └── rules/
+├── tests/
+├── examples/
+├── docs/
+├── assets/
+├── .github/
+└── .skillbench.yml
+```
+
+## Development
+
+```bash
+corepack enable
+pnpm install --frozen-lockfile
+
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
 ## Roadmap
 
 - **v0.1:** static analysis, safety rules, token analysis, five-agent compatibility, CLI, JSON, CI, badges.
-- **v0.2:** SARIF 2.1.0, GitHub Actions annotations, `compare`/`diff`, rule introspection, report file output.
-- **v0.3:** opt-in safe auto-fix, sandboxed execution benchmarks, optional LLM-as-a-judge, Skill regression tests.
+- **v0.2:** SARIF 2.1.0, GitHub Actions annotations, `compare` / `diff`, rule introspection, report file output.
+- **v0.3:** opt-in safe auto-fix, sandboxed execution benchmarks, optional LLM judge, Skill regression tests.
 - **v0.4:** SkillBench Registry, public leaderboard, shareable hosted reports.
 
-Planned commands include `skillbench test` and corpus-level `benchmark`. Real execution benchmarks will run only inside an explicit sandbox and will measure task success, tokens, elapsed time, tool calls, file changes, and test outcomes. They are not simulated in v0.2.
+Planned commands include `skillbench test` and corpus-level `benchmark`. Execution benchmarks will run only inside an explicit sandbox.
 
 ## Contributing
 
-New rules and adapters are deliberately small extension points. Read [CONTRIBUTING.md](CONTRIBUTING.md), then use the dedicated **New rule** or **New agent** issue form. All changes must pass:
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Before opening a pull request, run:
 
 ```bash
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm build
 ```

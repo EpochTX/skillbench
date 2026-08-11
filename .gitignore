@@ -6,3 +6,12 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local and generated output
+*.zip
+*.tgz
+*.tmp
+*.temp
+.tmp/
+tmp/
+.skillbench-output/

@@ -16,7 +16,8 @@ export function renderRules(
 
   const c = new Chalk({ level: options.color === false ? 0 : 1 });
   if (selected.length === 1) {
-    const rule = selected[0]!;
+    const rule = selected[0];
+    if (!rule) throw new Error('Rule selection unexpectedly returned no result.');
     return [
       c.bold(`${rule.id} — ${rule.name}`),
       '',

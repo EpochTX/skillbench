@@ -94,4 +94,41 @@ describe('compareReports', () => {
     expect(comparison.issues.resolved).toEqual([error]);
     expect(comparison.issues.introduced).toEqual([]);
   });
+
+  it('keeps issue identity stable when only the source line changes', () => {
+    const moved = { ...warning, line: 40 };
+    const comparison = compareReports(
+      makeReport(90, [warning], 100),
+      makeReport(90, [moved], 100),
+    );
+
+    expect(comparison.issues.unchanged).toBe(1);
+    expect(comparison.issues.introduced).toEqual([]);
+    expect(comparison.issues.resolved).toEqual([]);
+  });
+
+  it('normalizes Windows and POSIX separators for issue identity', () => {
+    const windowsIssue = { ...warning, path: 'nested\\SKILL.md' };
+    const posixIssue = { ...warning, path: 'nested/SKILL.md' };
+    const comparison = compareReports(
+      makeReport(90, [windowsIssue], 100),
+      makeReport(90, [posixIssue], 100),
+    );
+
+    expect(comparison.issues.unchanged).toBe(1);
+    expect(comparison.issues.introduced).toEqual([]);
+    expect(comparison.issues.resolved).toEqual([]);
+  });
+
+  it('preserves duplicate multiplicity instead of collapsing findings', () => {
+    const duplicate = { ...warning, line: 40 };
+    const comparison = compareReports(
+      makeReport(90, [warning], 100),
+      makeReport(90, [warning, duplicate], 100),
+    );
+
+    expect(comparison.issues.unchanged).toBe(1);
+    expect(comparison.issues.introduced).toEqual([duplicate]);
+    expect(comparison.issues.resolved).toEqual([]);
+  });
 });

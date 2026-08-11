@@ -8,13 +8,14 @@ Thanks for helping make agent instructions safer and easier to test. Small, focu
 git clone https://github.com/EpochTX/skillbench.git
 cd skillbench
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm lint
+pnpm typecheck
 pnpm test
 pnpm build
 ```
 
-SkillBench requires Node.js 20 or newer. The repository pins the pnpm major version in `package.json`.
+SkillBench requires Node.js 20 or newer. The repository pins pnpm in `package.json`.
 
 ## Add a new SkillBench rule
 
@@ -47,7 +48,7 @@ Rules must be deterministic in the recommended profile. Do not add a network cal
 
 - Open an issue first for a new rule range, scoring change, or compatibility behavior change.
 - Include tests and update documentation for user-visible behavior.
-- Run `pnpm lint && pnpm test && pnpm build` locally.
+- Run `pnpm lint && pnpm typecheck && pnpm test && pnpm build` locally.
 - Do not include real credentials, private instructions, or proprietary Skill files in fixtures.
 
 By contributing, you agree that your contribution is licensed under the MIT License.

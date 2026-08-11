@@ -16,10 +16,7 @@ export interface ReportSnapshot {
   summary: Record<Severity, number>;
   tokens: Pick<
     TokenMetrics,
-    | 'estimatedTokens'
-    | 'duplicateTokens'
-    | 'redundancyRatio'
-    | 'instructionDensity'
+    'estimatedTokens' | 'duplicateTokens' | 'redundancyRatio' | 'instructionDensity'
   >;
   fileCount: number;
 }

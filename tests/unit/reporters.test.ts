@@ -60,20 +60,24 @@ const report: AnalysisReport = {
 };
 
 describe('machine reporters', () => {
-  it('renders SARIF 2.1.0 with locations and fingerprints', () => {
+  it('renders SARIF 2.1.0 with canonical metadata, locations, and fingerprints', () => {
     const rendered = JSON.parse(new SarifReporter().render(report)) as {
       version: string;
-      runs: Array<{
-        results: Array<{
+      runs: {
+        tool: { driver: { informationUri: string } };
+        results: {
           ruleId: string;
           partialFingerprints: Record<string, string>;
-          locations: Array<{
+          locations: {
             physicalLocation: { region: { startLine: number } };
-          }>;
-        }>;
-      }>;
+          }[];
+        }[];
+      }[];
     };
     expect(rendered.version).toBe('2.1.0');
+    expect(rendered.runs[0]?.tool.driver.informationUri).toBe(
+      'https://github.com/EpochTX/skillbench',
+    );
     expect(rendered.runs[0]?.results[0]?.ruleId).toBe('SB102');
     expect(
       rendered.runs[0]?.results[0]?.partialFingerprints.skillbenchIssueFingerprint,
@@ -88,5 +92,24 @@ describe('machine reporters', () => {
     expect(rendered).toContain('::error file=SKILL.md,line=12');
     expect(rendered).toContain('title=SkillBench SB102');
     expect(rendered).toContain('Remediation:');
+  });
+
+  it('escapes GitHub Actions annotation properties and data', () => {
+    const baseIssue = report.issues[0];
+    if (!baseIssue) throw new Error('Expected reporter fixture issue.');
+    const rendered = new GitHubReporter().render({
+      ...report,
+      issues: [
+        {
+          ...baseIssue,
+          path: 'dir/a,b:c.md',
+          message: 'Percent 100%\nnext',
+          suggestion: 'Fix\rnow',
+        },
+      ],
+    });
+
+    expect(rendered).toContain('file=dir/a%2Cb%3Ac.md');
+    expect(rendered).toContain('Percent 100%25%0Anext Remediation: Fix%0Dnow');
   });
 });
