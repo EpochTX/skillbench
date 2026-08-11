@@ -19,6 +19,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Fixed
 
+- Stable issue fingerprints no longer change when a rule severity is overridden by configuration.
+- SARIF artifact URIs encode reserved filename characters such as `#` and `?` as path data.
 - The terminal demo no longer advertises the unpublished `npx skillbench-ai` command.
 - The SARIF workflow example no longer tries to install the unpublished npm package.
 
