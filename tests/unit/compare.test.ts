@@ -120,6 +120,18 @@ describe('compareReports', () => {
     expect(comparison.issues.resolved).toEqual([]);
   });
 
+  it('treats a severity escalation as resolved old severity and introduced new severity', () => {
+    const escalated = { ...warning, severity: 'error' as const };
+    const comparison = compareReports(
+      makeReport(90, [warning], 100),
+      makeReport(85, [escalated], 100),
+    );
+
+    expect(comparison.issues.unchanged).toBe(0);
+    expect(comparison.issues.resolved).toEqual([warning]);
+    expect(comparison.issues.introduced).toEqual([escalated]);
+  });
+
   it('preserves duplicate multiplicity instead of collapsing findings', () => {
     const duplicate = { ...warning, line: 40 };
     const comparison = compareReports(
