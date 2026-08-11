@@ -18,7 +18,12 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "README_EN.md",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "LICENSE",
+    "assets/logo.svg",
+    "docs/demo.svg"
   ],
   "engines": {
     "node": ">=20"
@@ -31,8 +36,12 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:dist": "node dist/cli.js --version && node dist/cli.js rules --format json",
     "typecheck": "tsc --noEmit",
-    "prepack": "pnpm build"
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:dist",
+    "pack:check": "pnpm pack --dry-run --json",
+    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test",
+    "prepack": "pnpm build && pnpm test:dist"
   },
   "keywords": [
     "ai",

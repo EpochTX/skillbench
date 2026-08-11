@@ -9,7 +9,7 @@
   <circle cx="76" cy="26" r="7" fill="#28c840"/>
   <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="20" fill="#c9d1d9">
     <text x="38" y="92" fill="#8b949e">$</text>
-    <text x="62" y="92" fill="#f0f6fc">npx skillbench-ai scan SKILL.md</text>
+    <text x="62" y="92" fill="#f0f6fc">node dist/cli.js scan SKILL.md</text>
     <text x="38" y="139" font-weight="700" fill="#f0f6fc">SkillBench 0.2.0</text>
     <text x="38" y="174" fill="#8b949e">1 file scanned</text>
     <text x="38" y="222" font-weight="700" fill="#f0f6fc">Overall Score</text>
