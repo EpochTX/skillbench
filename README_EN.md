@@ -118,10 +118,10 @@ skillbench benchmark tests/corpus/rules.yml --ci
 
 Stable exit codes:
 
-| Code | Meaning                                                   |
-| ---: | --------------------------------------------------------- |
-|  `0` | Command completed and its CI failure condition was not met |
-|  `1` | Analysis/comparison policy or benchmark threshold failed   |
+| Code | Meaning                                                           |
+| ---: | ----------------------------------------------------------------- |
+|  `0` | Command completed and its CI failure condition was not met        |
+|  `1` | Analysis/comparison policy or benchmark threshold failed          |
 |  `2` | Invalid arguments, configuration, target, parse, or runtime error |
 
 Analysis/comparison `--fail-on` accepts `warning`, `error`, or `critical`.
@@ -358,14 +358,14 @@ Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md). Nev
 
 ## Architecture
 
-| Module       | Responsibility                                                  | Extension point                   |
-| ------------ | --------------------------------------------------------------- | --------------------------------- |
-| `parser/`    | Frontmatter, paragraph, section, and source-location parsing    | New text formats                  |
-| `rules/`     | Deterministic findings grouped by category                      | New rules                         |
-| `core/`      | Analysis, tokens, scoring, comparison, safe fixes, benchmarks   | New analyzers or scoring profiles |
-| `adapters/`  | Native-entry detection and compatibility reasoning              | New coding-agent adapters         |
-| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, badge, benchmark     | New report formats                |
-| `cli/`       | Commands, options, CI policy, and user-facing errors            | New workflows                     |
+| Module       | Responsibility                                                | Extension point                   |
+| ------------ | ------------------------------------------------------------- | --------------------------------- |
+| `parser/`    | Frontmatter, paragraph, section, and source-location parsing  | New text formats                  |
+| `rules/`     | Deterministic findings grouped by category                    | New rules                         |
+| `core/`      | Analysis, tokens, scoring, comparison, safe fixes, benchmarks | New analyzers or scoring profiles |
+| `adapters/`  | Native-entry detection and compatibility reasoning            | New coding-agent adapters         |
+| `reporters/` | Terminal, JSON, SARIF, GitHub annotations, badge, benchmark   | New report formats                |
+| `cli/`       | Commands, options, CI policy, and user-facing errors          | New workflows                     |
 
 The supported package-root TypeScript API and compatibility policy are documented in [docs/API.md](docs/API.md).
 
