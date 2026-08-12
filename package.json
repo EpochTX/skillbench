@@ -40,11 +40,13 @@
     "benchmark:fixtures": "tsx tests/corpus/generate-fixtures.ts",
     "benchmark:rules": "pnpm benchmark:fixtures && tsx src/cli.ts benchmark tests/corpus/rules.yml --ci --no-color",
     "test:dist": "pnpm benchmark:fixtures && tsx scripts/verify-built-cli.ts",
+    "package:smoke": "tsx scripts/verify-packed-package.ts",
+    "audit:prod": "pnpm audit --prod --audit-level high",
     "typecheck": "tsc --noEmit",
     "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules && pnpm build && pnpm test:dist",
     "pack:check": "pnpm pack --dry-run --json",
-    "release:check": "pnpm verify && pnpm pack:check",
-    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules",
+    "release:check": "pnpm verify && pnpm run audit:prod && pnpm run package:smoke && pnpm pack:check",
+    "prepublishOnly": "pnpm verify && pnpm run audit:prod",
     "prepack": "pnpm build && pnpm test:dist"
   },
   "keywords": [

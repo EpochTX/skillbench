@@ -37,6 +37,15 @@ describe('release metadata', () => {
   it('keeps canonical repository and release checks configured', () => {
     expect(PROJECT_URL).toBe('https://github.com/EpochTX/skillbench');
     expect(packageJson.repository.url).toBe(`git+${PROJECT_URL}.git`);
-    expect(packageJson.scripts['release:check']).toBe('pnpm verify && pnpm pack:check');
+
+    const releaseCheck = packageJson.scripts['release:check'] ?? '';
+    expect(releaseCheck).toContain('pnpm verify');
+    expect(releaseCheck).toContain('pnpm run audit:prod');
+    expect(releaseCheck).toContain('pnpm run package:smoke');
+    expect(releaseCheck).toContain('pnpm pack:check');
+
+    const prepublish = packageJson.scripts.prepublishOnly ?? '';
+    expect(prepublish).toContain('pnpm verify');
+    expect(prepublish).toContain('pnpm run audit:prod');
   });
 });
