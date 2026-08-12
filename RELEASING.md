@@ -30,11 +30,36 @@ pnpm install --frozen-lockfile
 pnpm release:check
 ```
 
-`pnpm release:check` runs lint, TypeScript typechecking, the full Vitest suite, the production build, a smoke test against `dist/cli.js`, and an npm package dry run.
+`pnpm release:check` runs lint, TypeScript typechecking, the full Vitest suite, the 24/24 labeled rule benchmark, the production build, a smoke test against `dist/cli.js`, a production-dependency security audit at `high` severity or above, an installed-package consumer smoke test, and a package dry run.
 
-## Inspect the package
+## Production dependency audit
 
-Review the `pnpm pack:check` output before publication. The package must contain the production build, license, both READMEs, security and contribution documentation, and README-linked SVG assets. It must not contain tests, fixtures, coverage, temporary archives, credentials, or local output.
+The release gate includes:
+
+```bash
+pnpm audit --prod --audit-level high
+```
+
+A high or critical advisory in a production dependency is a release blocker. Do not make the gate green with `--ignore-unfixable`, blanket advisory ignores, or an automatic lockfile rewrite. Investigate the affected dependency, upgrade or replace it when possible, and document any exceptional risk acceptance before release.
+
+Development-only advisories do not automatically block the published runtime package, but they should still be reviewed as part of repository maintenance and supply-chain hygiene.
+
+## Inspect and install the package
+
+`pnpm package:smoke` performs a real consumer-style verification rather than only inspecting `dist/` in the source tree. It:
+
+- creates an actual `.tgz` package;
+- installs that archive into a clean temporary consumer project using the existing pnpm store;
+- imports the package root as ESM;
+- typechecks a consumer against the installed `dist/index.d.ts`;
+- executes the installed `skillbench` binary;
+- runs a real scan from the installed package;
+- verifies required documentation and runtime files are present;
+- rejects accidental `src/`, `tests/`, or `coverage/` content in the installed package.
+
+The CI matrix runs this installed-package smoke test on Node.js 20 and 22 on Ubuntu and also on Windows to validate the generated command shim.
+
+Review the `pnpm pack:check` output before publication as a second package-content check. The package must contain the production build, license, both READMEs, `docs/API.md`, security and contribution documentation, and README-linked SVG assets. It must not contain tests, fixtures, coverage, temporary archives, credentials, or local output.
 
 Confirm the built executable directly:
 
