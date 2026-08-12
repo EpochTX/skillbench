@@ -4,6 +4,14 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ## Unreleased
 
+### Added
+
+- `skillbench fix --write` can apply a deliberately narrow class of deterministic safe fixes while the default fix mode remains read-only.
+- The initial safe writer removes only exact duplicated plain-prose paragraphs reported by `SB003`; structural Markdown, code, near-duplicates, and ambiguous findings remain review-only.
+- `skillbench fix --backup` creates non-overwriting `.skillbench.bak` copies before modified files are written.
+- Safe fix plans carry source hashes and reject stale writes when a file changes after planning.
+- Public `planSafeFixes` and `applyFixPlan` APIs support audited integrations and custom tooling.
+
 ### Changed
 
 - CI now smoke-tests the built `dist/cli.js` executable on Node.js 20, Node.js 22, macOS, and Windows.
