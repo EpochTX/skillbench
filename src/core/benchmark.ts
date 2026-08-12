@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import YAML from 'yaml';
@@ -7,6 +8,7 @@ import { defaultConfig } from '../config/schema.js';
 import { discoverDocuments } from '../parser/discovery.js';
 import { builtInRules } from '../rules/registry.js';
 import { analyzeDocuments } from './analyze.js';
+import type { AnalysisReport } from './types.js';
 
 const benchmarkCaseSchema = z
   .object({
@@ -127,7 +129,10 @@ export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchm
   };
 }
 
-async function analyzeBenchmarkTarget(caseId: string, target: string) {
+async function analyzeBenchmarkTarget(
+  caseId: string,
+  target: string,
+): Promise<AnalysisReport> {
   try {
     const documents = await discoverDocuments(target);
     return analyzeDocuments(documents, target, {
@@ -146,9 +151,7 @@ async function loadManifest(
   manifestPath: string,
 ): Promise<z.infer<typeof benchmarkManifestSchema>> {
   try {
-    const raw = await import('node:fs/promises').then(({ readFile }) =>
-      readFile(manifestPath, 'utf8'),
-    );
+    const raw = await readFile(manifestPath, 'utf8');
     const parsed: unknown = YAML.parse(raw);
     return benchmarkManifestSchema.parse(parsed);
   } catch (error) {
