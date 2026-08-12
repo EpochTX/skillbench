@@ -14,8 +14,23 @@ const severityRank: Record<Severity, number> = {
   critical: 3,
 };
 
-const defensiveSafetyRules = ['SB100', 'SB102', 'SB103', 'SB104', 'SB105', 'SB106'];
-const allSafetyRules = ['SB100', 'SB101', 'SB102', 'SB103', 'SB104', 'SB105', 'SB106'];
+const defensiveSafetyRules = [
+  'SB100',
+  'SB102',
+  'SB103',
+  'SB104',
+  'SB105',
+  'SB106',
+];
+const allSafetyRules = [
+  'SB100',
+  'SB101',
+  'SB102',
+  'SB103',
+  'SB104',
+  'SB105',
+  'SB106',
+];
 
 describe('security context classification', () => {
   it('keeps defensive documentation examples below error severity', async () => {
@@ -28,9 +43,10 @@ describe('security context classification', () => {
       const detectedRules = new Set(safetyIssues.map((issue) => issue.ruleId));
 
       for (const ruleId of defensiveSafetyRules) {
-        expect(detectedRules.has(ruleId), `${ruleId} defensive fixture should exercise the rule`).toBe(
-          true,
-        );
+        expect(
+          detectedRules.has(ruleId),
+          `${ruleId} defensive fixture should exercise the rule`,
+        ).toBe(true);
       }
       expect(detectedRules.has('SB101')).toBe(false);
       expect(
