@@ -1,4 +1,4 @@
-import { Chalk } from 'chalk';
+import { Chalk, type ChalkInstance } from 'chalk';
 
 import type { RuleBenchmarkReport } from '../core/benchmark.js';
 
@@ -39,6 +39,6 @@ export function renderRuleBenchmark(
   return lines.join('\n');
 }
 
-function statusLabel(c: Chalk, passed: boolean): string {
+function statusLabel(c: ChalkInstance, passed: boolean): string {
   return passed ? c.green.bold('PASS') : c.red.bold('FAIL');
 }
