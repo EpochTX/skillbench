@@ -36,12 +36,13 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "benchmark:rules": "tsx src/cli.ts benchmark tests/corpus/rules.yml --ci --no-color",
     "test:dist": "node dist/cli.js --version && node dist/cli.js rules --format json",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:dist",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules && pnpm build && pnpm test:dist",
     "pack:check": "pnpm pack --dry-run --json",
     "release:check": "pnpm verify && pnpm pack:check",
-    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test",
+    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules",
     "prepack": "pnpm build && pnpm test:dist"
   },
   "keywords": [
