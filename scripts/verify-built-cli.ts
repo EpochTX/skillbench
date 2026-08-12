@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -11,7 +12,7 @@ import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const cliPath = path.join(root, 'dist', 'cli.js');
-const ansiPattern = /\u001B\[[0-?]*[ -/]*[@-~]/u;
+const ansiControlSequencePrefix = `${String.fromCharCode(27)}[`;
 const duplicateParagraph =
   'Keep this exact plain prose instruction because it is intentionally long enough for duplicate detection.';
 
@@ -21,9 +22,9 @@ interface CommandResult {
   stderr: string;
 }
 
-await main();
+main();
 
-async function main(): Promise<void> {
+function main(): void {
   assertSuccess(run('--version'), 'version');
 
   const directory = mkdtempSync(path.join(os.tmpdir(), 'skillbench-built-cli-'));
@@ -56,24 +57,18 @@ function verifyJsonScan(target: string, outputPath: string): void {
     run('scan', target, '--format', 'json', '--no-color'),
     'scan JSON',
   );
-  const report = parseJson<{ schemaVersion?: string; target?: string }>(direct.stdout);
+  const report = parseJson(direct.stdout) as { schemaVersion?: string; target?: string };
   assert(report.schemaVersion === '0.1', 'scan JSON schemaVersion mismatch');
-  assert(!ansiPattern.test(direct.stdout), 'scan --no-color emitted ANSI escapes');
+  assertNoAnsi(direct.stdout, 'scan --no-color');
 
   const written = assertSuccess(
-    run(
-      'scan',
-      target,
-      '--format',
-      'json',
-      '--output',
-      outputPath,
-      '--no-color',
-    ),
+    run('scan', target, '--format', 'json', '--output', outputPath, '--no-color'),
     'scan --output',
   );
   assert(existsSync(outputPath), '--output did not create the report file');
-  const fileReport = parseJson<{ schemaVersion?: string }>(readFileSync(outputPath, 'utf8'));
+  const fileReport = parseJson(readFileSync(outputPath, 'utf8')) as {
+    schemaVersion?: string;
+  };
   assert(fileReport.schemaVersion === '0.1', '--output report schema mismatch');
   assert(written.stdout.startsWith('Wrote '), '--output did not report the written path');
 }
@@ -88,7 +83,7 @@ function verifyHumanViews(target: string): void {
   for (const [command, expected] of checks) {
     const result = assertSuccess(run(command, target, '--no-color'), command);
     assert(result.stdout.includes(expected), `${command} output contract mismatch`);
-    assert(!ansiPattern.test(result.stdout), `${command} --no-color emitted ANSI escapes`);
+    assertNoAnsi(result.stdout, `${command} --no-color`);
   }
 
   const security = assertSuccess(
@@ -114,7 +109,7 @@ function verifyFixFlow(target: string): void {
 
 function verifyRules(): void {
   const listed = assertSuccess(run('rules', '--format', 'json', '--no-color'), 'rules JSON');
-  const rules = parseJson<unknown[]>(listed.stdout);
+  const rules = parseJson(listed.stdout) as unknown[];
   assert(rules.length === 24, `rules JSON returned ${rules.length} rules`);
 
   const explained = assertSuccess(run('rules', 'SB102', '--no-color'), 'rules SB102');
@@ -137,7 +132,9 @@ function verifyCompare(target: string): void {
     1,
     'compare CI regression',
   );
-  const report = parseJson<{ issues?: { introduced?: unknown[] } }>(comparison.stdout);
+  const report = parseJson(comparison.stdout) as {
+    issues?: { introduced?: unknown[] };
+  };
   assert((report.issues?.introduced?.length ?? 0) > 0, 'compare did not report introduced issues');
 }
 
@@ -153,9 +150,10 @@ function verifyBenchmark(): void {
     ),
     'benchmark',
   );
-  const report = parseJson<{ passed?: boolean; totals?: { coveredRules?: number } }>(
-    result.stdout,
-  );
+  const report = parseJson(result.stdout) as {
+    passed?: boolean;
+    totals?: { coveredRules?: number };
+  };
   assert(report.passed === true, 'built benchmark did not pass');
   assert(report.totals?.coveredRules === 24, 'built benchmark did not cover 24 rules');
 }
@@ -218,18 +216,17 @@ function assertStatus(
   return result;
 }
 
-function parseJson<T>(value: string): T {
-  return JSON.parse(value) as T;
+function parseJson(value: string): unknown {
+  return JSON.parse(value) as unknown;
+}
+
+function assertNoAnsi(value: string, label: string): void {
+  assert(!value.includes(ansiControlSequencePrefix), `${label} emitted ANSI escapes`);
 }
 
 function writeFixture(filePath: string, content: string): void {
-  const directory = path.dirname(filePath);
-  const result = spawnSync(process.execPath, [
-    '--input-type=module',
-    '--eval',
-    `import { mkdirSync, writeFileSync } from 'node:fs'; mkdirSync(${JSON.stringify(directory)}, { recursive: true }); writeFileSync(${JSON.stringify(filePath)}, ${JSON.stringify(content)}, 'utf8');`,
-  ]);
-  if (result.status !== 0) throw new Error(`Unable to create fixture at ${filePath}.`);
+  mkdirSync(path.dirname(filePath), { recursive: true });
+  writeFileSync(filePath, content, 'utf8');
 }
 
 function goodSkillSource(newline: string): string {
