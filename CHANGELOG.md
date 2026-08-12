@@ -6,6 +6,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Added
 
+- The `Package Integrity` workflow validates the real npm tarball as an installed consumer package on Node.js 20, Node.js 22, and Windows, including package-root ESM imports, published TypeScript declarations, the installed CLI, package contents, and a real scan.
+- `pnpm run audit:prod` makes known high or critical production-dependency advisories an explicit release blocker without blanket ignores or automatic audit fixes.
 - `docs/PERFORMANCE.md` and the `Performance Guard` workflow define a deterministic 120-file repository-scale baseline with auditable elapsed-time and RSS regression ceilings for the 1.0 release track.
 - `docs/API.md` defines the package-root TypeScript compatibility contract, including supported runtime exports, public types, safe-fix semantics, benchmark behavior, and post-1.0 SemVer expectations.
 - Exact runtime-export tests and a compile-time public-type contract now make accidental root API additions/removals fail CI.
@@ -22,6 +24,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
+- `pnpm release:check` now includes full deterministic verification, production dependency audit, real installed-tarball smoke testing, and package dry-run validation before publication.
 - Built CLI verification now exercises the documented production command surface after every build, including Unicode and spaced paths, CRLF input, `--output`, `--no-color`, JSON stdout purity, safe fixes, regression exits, initialization, badges, and the labeled rule benchmark.
 - Chinese and English READMEs now document the real safe-write behavior, 24/24 rule benchmark gate, public API contract, 1.0 release criteria, and current hardening roadmap.
 - The packaged file allowlist now includes `docs/API.md` so npm consumers receive the supported API contract.
