@@ -234,7 +234,7 @@ function spawn(
 ) {
   return spawnSync(command, arguments_, {
     ...options,
-    shell: process.platform === 'win32',
+    shell: process.platform === 'win32' && command === pnpmCommand,
   });
 }
 
