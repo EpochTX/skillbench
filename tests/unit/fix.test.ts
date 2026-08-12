@@ -61,9 +61,9 @@ describe('safe fix planning', () => {
       expect(updated).toContain('\r\n');
       expect(updated.split(duplicateParagraph)).toHaveLength(2);
       expect(updated).toContain('Keep this distinct final instruction unchanged.');
-      expect((await readdir(directory)).some((name) => name.includes('.skillbench-'))).toBe(
-        false,
-      );
+      expect(
+        (await readdir(directory)).some((name) => name.includes('.skillbench-')),
+      ).toBe(false);
 
       const secondPlan = await planSafeFixes(filePath);
       expect(secondPlan.fixes).toEqual([]);
@@ -116,7 +116,9 @@ describe('safe fix planning', () => {
       expect(await readFile(firstPath, 'utf8')).toBe(firstSource);
       expect(await readFile(secondPath, 'utf8')).toBe(secondSource);
       expect(await readFile(existingBackup, 'utf8')).toBe('existing backup');
-      await expect(readFile(`${firstPath}.skillbench.bak`, 'utf8')).rejects.toMatchObject({
+      await expect(
+        readFile(`${firstPath}.skillbench.bak`, 'utf8'),
+      ).rejects.toMatchObject({
         code: 'ENOENT',
       });
     } finally {
