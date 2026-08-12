@@ -195,14 +195,20 @@ export function renderFixResult(
       : c.dim('No deterministic safe fixes were available to apply.'),
   ];
   if (result.backups.length > 0) {
-    lines.push(c.dim(`Created ${result.backups.length} .skillbench.bak backup file(s).`));
+    lines.push(
+      c.dim(`Created ${result.backups.length} .skillbench.bak backup file(s).`),
+    );
   }
 
   const reviewSuggestions = fixSuggestions(report, remainingPlan);
   if (remainingPlan.fixes.length > 0) {
     lines.push('', c.yellow('Some safe fixes remain after writing:'), '');
     for (const fix of remainingPlan.fixes) {
-      lines.push(`${c.green('SAFE')} ${c.bold(fix.ruleId)} ${fix.path}:${fix.line}`, `  ${fix.message}`, '');
+      lines.push(
+        `${c.green('SAFE')} ${c.bold(fix.ruleId)} ${fix.path}:${fix.line}`,
+        `  ${fix.message}`,
+        '',
+      );
     }
   }
   appendReviewSuggestions(lines, reviewSuggestions, c);
