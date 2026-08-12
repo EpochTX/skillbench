@@ -29,7 +29,7 @@ async function main(): Promise<void> {
     await writeConsumerFiles(consumerDirectory, metadata);
     run(
       pnpmCommand,
-      ['add', '--offline', '--ignore-scripts', '--save-exact', archivePath],
+      ['add', '--prefer-offline', '--ignore-scripts', '--save-exact', archivePath],
       consumerDirectory,
     );
 
@@ -221,7 +221,10 @@ function verifyScanCommand(consumerDirectory: string): void {
     ['exec', 'skillbench', 'scan', 'SKILL.md', '--format', 'json', '--no-color'],
     consumerDirectory,
   );
-  const report = JSON.parse(output) as { schemaVersion?: string; tool?: { name?: string } };
+  const report = JSON.parse(output) as {
+    schemaVersion?: string;
+    tool?: { name?: string };
+  };
   if (report.schemaVersion !== '0.1' || report.tool?.name !== 'skillbench') {
     throw new Error('Installed CLI scan did not return the expected report contract.');
   }
