@@ -58,7 +58,10 @@ function verifyJsonScan(target: string, outputPath: string): void {
     run('scan', target, '--format', 'json', '--no-color'),
     'scan JSON',
   );
-  const report = parseJson(direct.stdout) as { schemaVersion?: string; target?: string };
+  const report = parseJson(direct.stdout) as {
+    schemaVersion?: string;
+    target?: string;
+  };
   assert(report.schemaVersion === '0.1', 'scan JSON schemaVersion mismatch');
   assertNoAnsi(direct.stdout, 'scan --no-color');
 
@@ -71,7 +74,10 @@ function verifyJsonScan(target: string, outputPath: string): void {
     schemaVersion?: string;
   };
   assert(fileReport.schemaVersion === '0.1', '--output report schema mismatch');
-  assert(written.stdout.startsWith('Wrote '), '--output did not report the written path');
+  assert(
+    written.stdout.startsWith('Wrote '),
+    '--output did not report the written path',
+  );
 }
 
 function verifyHumanViews(target: string): void {
@@ -90,8 +96,14 @@ function verifyHumanViews(target: string): void {
   assert(lint.stdout.includes('SB100'), 'lint did not expose expected rule findings');
   assertNoAnsi(lint.stdout, 'lint --no-color');
 
-  const security = assertSuccess(run('security', dangerousFixture, '--no-color'), 'security');
-  assert(security.stdout.includes('Security Report'), 'security output contract mismatch');
+  const security = assertSuccess(
+    run('security', dangerousFixture, '--no-color'),
+    'security',
+  );
+  assert(
+    security.stdout.includes('Security Report'),
+    'security output contract mismatch',
+  );
   assertNoAnsi(security.stdout, 'security --no-color');
 }
 
@@ -149,7 +161,10 @@ function verifyCompare(target: string): void {
   const report = parseJson(comparison.stdout) as {
     issues?: { introduced?: unknown[] };
   };
-  assert((report.issues?.introduced?.length ?? 0) > 0, 'compare did not report introduced issues');
+  assert(
+    (report.issues?.introduced?.length ?? 0) > 0,
+    'compare did not report introduced issues',
+  );
 }
 
 function verifyBenchmark(): void {
@@ -182,7 +197,10 @@ function verifyInitAndBadge(directory: string, target: string): void {
   );
 
   const badge = assertSuccess(run('badge', target), 'badge');
-  assert(badge.stdout.includes('https://img.shields.io/badge/SkillBench-'), 'badge output mismatch');
+  assert(
+    badge.stdout.includes('https://img.shields.io/badge/SkillBench-'),
+    'badge output mismatch',
+  );
 }
 
 function verifyExitCodes(target: string): void {
