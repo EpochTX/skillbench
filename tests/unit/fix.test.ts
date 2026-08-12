@@ -4,11 +4,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import {
-  applyFixPlan,
-  FixConflictError,
-  planSafeFixes,
-} from '../../src/core/fix.js';
+import { applyFixPlan, FixConflictError, planSafeFixes } from '../../src/core/fix.js';
 
 const duplicateParagraph =
   'Keep this exact plain prose instruction because it is intentionally long enough for duplicate detection.';
