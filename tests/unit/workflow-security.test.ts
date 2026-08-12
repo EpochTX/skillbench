@@ -41,12 +41,16 @@ describe('workflow supply-chain policy', () => {
   it('does not persist checkout credentials in any project workflow', () => {
     for (const filePath of workflowPaths) {
       const workflow = read(filePath);
-      const checkoutCount = [...workflow.matchAll(/uses:\s+actions\/checkout@/gu)].length;
+      const checkoutCount = [...workflow.matchAll(/uses:\s+actions\/checkout@/gu)]
+        .length;
       const disabledCredentialCount = [
         ...workflow.matchAll(/persist-credentials:\s+false/gu),
       ].length;
 
-      expect(checkoutCount, `${filePath} should check out the repository`).toBeGreaterThan(0);
+      expect(
+        checkoutCount,
+        `${filePath} should check out the repository`,
+      ).toBeGreaterThan(0);
       expect(
         disabledCredentialCount,
         `${filePath} must disable checkout credential persistence`,
