@@ -53,9 +53,9 @@ describe('package metadata', () => {
     expect(packageJson.scripts.prepublishOnly).toContain('pnpm verify');
   });
 
-  it('does not advertise the unpublished npm command in the terminal demo', () => {
+  it('advertises the versioned npm command in the 1.0 terminal demo', () => {
     const demo = readFileSync(path.join(root, 'docs/demo.svg'), 'utf8');
-    expect(demo).toContain('node dist/cli.js scan SKILL.md');
-    expect(demo).not.toContain('npx skillbench-ai');
+    expect(demo).toContain('npx skillbench-ai scan SKILL.md');
+    expect(demo).toContain('SkillBench 1.0.0');
   });
 });
