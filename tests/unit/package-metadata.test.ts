@@ -39,13 +39,18 @@ describe('package metadata', () => {
     expect(packageJson.repository.url).toBe(
       'git+https://github.com/EpochTX/skillbench.git',
     );
+
     expect(packageJson.scripts['test:dist']).toContain('scripts/verify-built-cli.ts');
     const builtCliVerifier = readFileSync(
       path.join(root, 'scripts/verify-built-cli.ts'),
       'utf8',
     );
     expect(builtCliVerifier).toContain("path.join(root, 'dist', 'cli.js')");
-    expect(packageJson.scripts.prepublishOnly).toContain('pnpm test');
+
+    const verify = packageJson.scripts.verify ?? '';
+    expect(verify).toContain('pnpm test');
+    expect(verify).toContain('pnpm test:dist');
+    expect(packageJson.scripts.prepublishOnly).toContain('pnpm verify');
   });
 
   it('does not advertise the unpublished npm command in the terminal demo', () => {
