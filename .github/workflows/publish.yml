@@ -15,6 +15,7 @@ on:
     branches: [main]
     tags: ['v*']
     paths:
+      - .github/workflows/publish.yml
       - package.json
       - src/version.ts
       - CHANGELOG.md
@@ -113,6 +114,23 @@ jobs:
           done
           [[ "$(npm view "$package@$version" version --json)" == "\"$version\"" ]]
           [[ "$(npm view "$package@$version" repository.url --json)" == "$expected_repo" ]]
+      - name: Verify installed registry CLI
+        if: steps.release.outputs.eligible == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          package='${{ steps.release.outputs.package }}'
+          version='${{ steps.release.outputs.version }}'
+          consumer="$(mktemp -d)"
+          trap 'rm -rf "$consumer"' EXIT
+          cd "$consumer"
+          npm init --yes >/dev/null
+          npm install --ignore-scripts --no-audit --no-fund "$package@$version"
+          version_output="$(./node_modules/.bin/skillbench --version)"
+          [[ "$version_output" == *"$version"* ]]
+          printf '# Agent Instructions\n\nKeep changes scoped, deterministic, and reviewable.\n' > SKILL.md
+          ./node_modules/.bin/skillbench scan SKILL.md --format json --output report.json
+          node --input-type=module -e "import fs from 'node:fs'; const report=JSON.parse(fs.readFileSync('report.json','utf8')); if (report.tool?.version !== '$version') process.exit(1);"
       - name: Create v1.0.0 tag and GitHub release
         if: steps.release.outputs.eligible == 'true'
         shell: bash
@@ -122,16 +140,20 @@ jobs:
           set -euo pipefail
           version='${{ steps.release.outputs.version }}'
           tag="v$version"
-          existing_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null || true)"
-          if [[ -n "$existing_sha" && "$existing_sha" != "$GITHUB_SHA" ]]; then
-            echo "$tag already points to $existing_sha instead of $GITHUB_SHA" >&2
+          release_sha='365533eb2feb60467336ce1faca2df96a4ad1d78'
+          existing_sha=''
+          if ref_json="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" 2>/dev/null)"; then
+            existing_sha="$(jq -r '.object.sha' <<<"$ref_json")"
+          fi
+          if [[ -n "$existing_sha" && "$existing_sha" != "$release_sha" ]]; then
+            echo "$tag already points to $existing_sha instead of $release_sha" >&2
             exit 1
           fi
           if [[ -z "$existing_sha" ]]; then
-            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA" >/dev/null
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$release_sha" >/dev/null
           fi
           if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --verify-tag --target "$GITHUB_SHA" --title "SkillBench v$version" --generate-notes
+            gh release create "$tag" --verify-tag --target "$release_sha" --title "SkillBench v$version" --generate-notes
           fi
 
   publish-tag:
