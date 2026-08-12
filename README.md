@@ -90,22 +90,22 @@ SkillBench 默认完全本地分析，**不会执行被扫描文件中的命令�
 
 ## CLI
 
-| 命令                                  | 用途                                        |
-| ------------------------------------- | ------------------------------------------- |
-| `skillbench scan [target]`            | 完整评分、问题、Token 与兼容性分析          |
-| `skillbench score [target]`           | 总分与分类分数                              |
-| `skillbench lint [target]`            | 全部规则命中、位置与修复建议                |
-| `skillbench security [target]`        | 安全问题视图                                |
-| `skillbench token [target]`           | Token、重复度与指令密度                     |
-| `skillbench compat [target]`          | 五类 Agent 兼容性                           |
-| `skillbench compare <before> <after>` | 对比评分、Token、问题与兼容性变化           |
-| `skillbench diff <before> <after>`    | `compare` 的别名                            |
-| `skillbench rules [ruleId]`           | 列出规则或查看单条规则                      |
-| `skillbench fix [target]`             | 只读预览安全修复                            |
-| `skillbench fix [target] --write`     | 显式应用确定性的 SAFE 修复                  |
-| `skillbench benchmark <manifest>`     | 运行人工标签规则 Benchmark                  |
+| 命令                                  | 用途                                       |
+| ------------------------------------- | ------------------------------------------ |
+| `skillbench scan [target]`            | 完整评分、问题、Token 与兼容性分析         |
+| `skillbench score [target]`           | 总分与分类分数                             |
+| `skillbench lint [target]`            | 全部规则命中、位置与修复建议               |
+| `skillbench security [target]`        | 安全问题视图                               |
+| `skillbench token [target]`           | Token、重复度与指令密度                    |
+| `skillbench compat [target]`          | 五类 Agent 兼容性                          |
+| `skillbench compare <before> <after>` | 对比评分、Token、问题与兼容性变化          |
+| `skillbench diff <before> <after>`    | `compare` 的别名                           |
+| `skillbench rules [ruleId]`           | 列出规则或查看单条规则                     |
+| `skillbench fix [target]`             | 只读预览安全修复                           |
+| `skillbench fix [target] --write`     | 显式应用确定性的 SAFE 修复                 |
+| `skillbench benchmark <manifest>`     | 运行人工标签规则 Benchmark                 |
 | `skillbench init [directory]`         | 创建 `.skillbench.yml`；缺失目录会自动创建 |
-| `skillbench badge [target]`           | 生成 shields.io Markdown Badge              |
+| `skillbench badge [target]`           | 生成 shields.io Markdown Badge             |
 
 常用示例：
 
@@ -158,13 +158,13 @@ GEMINI.md
 
 推荐配置包含 **24 条确定性规则**：
 
-| 范围            | 分类       | 关注点                                                         |
-| --------------- | ---------- | -------------------------------------------------------------- |
-| `SB001`–`SB007` | 指令质量   | 长度、重复、冲突、模糊语言、目的、优先级标记                   |
-| `SB100`–`SB106` | 安全性     | 危险命令、Secret、凭据路径、任意执行、注入、破坏性操作         |
-| `SB200`–`SB203` | Token 效率 | 重复 Token、重复指令、Markdown 噪声、超大示例                  |
-| `SB300`–`SB302` | 可维护性   | 缺少结构、超大章节、超大段落                                   |
-| `SB400`–`SB402` | 可移植性   | Agent Skills 元数据、厂商字段、Cursor/Copilot 作用域元数据     |
+| 范围            | 分类       | 关注点                                                     |
+| --------------- | ---------- | ---------------------------------------------------------- |
+| `SB001`–`SB007` | 指令质量   | 长度、重复、冲突、模糊语言、目的、优先级标记               |
+| `SB100`–`SB106` | 安全性     | 危险命令、Secret、凭据路径、任意执行、注入、破坏性操作     |
+| `SB200`–`SB203` | Token 效率 | 重复 Token、重复指令、Markdown 噪声、超大示例              |
+| `SB300`–`SB302` | 可维护性   | 缺少结构、超大章节、超大段落                               |
+| `SB400`–`SB402` | 可移植性   | Agent Skills 元数据、厂商字段、Cursor/Copilot 作用域元数据 |
 
 默认总分权重：指令质量 30%、安全性 25%、Token 效率 15%、可移植性 20%、可维护性 10%。同一规则重复命中采用递减扣分；安全类 `critical` 会触发显式总分上限。
 
@@ -210,13 +210,13 @@ skillbench benchmark tests/corpus/rules.yml --ci
 
 ## Agent 兼容性
 
-| Agent          | 可移植 Skill | 原生指令入口                                                     |
-| -------------- | ------------ | ---------------------------------------------------------------- |
-| OpenAI Codex   | `SKILL.md`   | `AGENTS.md`                                                      |
-| Claude Code    | `SKILL.md`   | `CLAUDE.md`                                                      |
-| Cursor         | `SKILL.md`   | `AGENTS.md`、`.cursor/rules/*.mdc`；`.cursorrules` 为 legacy     |
-| Gemini CLI     | `SKILL.md`   | `GEMINI.md`                                                      |
-| GitHub Copilot | `SKILL.md`   | `.github/copilot-instructions.md`、作用域 `.instructions.md`     |
+| Agent          | 可移植 Skill | 原生指令入口                                                 |
+| -------------- | ------------ | ------------------------------------------------------------ |
+| OpenAI Codex   | `SKILL.md`   | `AGENTS.md`                                                  |
+| Claude Code    | `SKILL.md`   | `CLAUDE.md`                                                  |
+| Cursor         | `SKILL.md`   | `AGENTS.md`、`.cursor/rules/*.mdc`；`.cursorrules` 为 legacy |
+| Gemini CLI     | `SKILL.md`   | `GEMINI.md`                                                  |
+| GitHub Copilot | `SKILL.md`   | `.github/copilot-instructions.md`、作用域 `.instructions.md` |
 
 兼容性状态为 `SUPPORTED`、`PARTIAL`、`UNSUPPORTED`、`UNKNOWN`。
 
