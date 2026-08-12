@@ -1,6 +1,6 @@
 # SkillBench TypeScript API
 
-This document defines the public TypeScript surface that SkillBench intends to stabilize for 1.0. Imports from internal paths such as `skillbench-ai/dist/...` or repository `src/...` files are not part of the compatibility contract; consumers should import from the package root only.
+This document defines the public TypeScript surface stabilized by SkillBench 1.0. Imports from internal paths such as `skillbench-ai/dist/...` or repository `src/...` files are not part of the compatibility contract; consumers should import from the package root only.
 
 ```ts
 import {
@@ -13,7 +13,7 @@ import {
 
 ## Compatibility policy
 
-Before 1.0, public API changes may still occur while the contract is being completed. Starting with 1.0:
+Starting with 1.0:
 
 - removing or incompatibly changing a documented runtime export requires a major version;
 - removing or incompatibly changing a documented exported type requires a major version;
@@ -76,7 +76,7 @@ Returns deterministic paragraph-similarity matches used by duplication analysis 
 
 The built-in adapter registry for OpenAI Codex, Claude Code, Cursor, Gemini CLI, and GitHub Copilot.
 
-`AgentAdapter` is exported for integrations that need the adapter type contract. The current top-level analyzer uses the built-in registry; arbitrary third-party adapter registration is not yet a 1.0 extension-point promise.
+`AgentAdapter` is exported for integrations that need the adapter type contract. The top-level analyzer uses the built-in registry; arbitrary third-party adapter registration is not a 1.0 extension-point promise.
 
 ## Compare / diff
 
@@ -177,4 +177,4 @@ The package root exports these documented types:
 - `RuleBenchmarkReport`
 - `RuleBenchmarkThresholds`
 
-The source of truth remains the package-root declaration file produced by the release build. This document describes the supported contract; it does not make internal source paths public APIs.
+The source of truth is the package-root declaration file produced by the release build. This document describes the supported contract; it does not make internal source paths public APIs.
