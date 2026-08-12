@@ -6,6 +6,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Added
 
+- `docs/PERFORMANCE.md` and the `Performance Guard` workflow define a deterministic 120-file repository-scale baseline with auditable elapsed-time and RSS regression ceilings for the 1.0 release track.
 - `docs/API.md` defines the package-root TypeScript compatibility contract, including supported runtime exports, public types, safe-fix semantics, benchmark behavior, and post-1.0 SemVer expectations.
 - Exact runtime-export tests and a compile-time public-type contract now make accidental root API additions/removals fail CI.
 - `skillbench benchmark <manifest>` measures case-by-rule precision, recall, built-in-rule coverage, false positives, and false negatives from a labeled YAML corpus.
