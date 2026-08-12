@@ -1,5 +1,6 @@
 import { Chalk, type ChalkInstance } from 'chalk';
 
+import type { ApplyFixResult, FixPlan } from '../core/fix.js';
 import type {
   AnalysisReport,
   Category,
@@ -148,29 +149,63 @@ export function renderTokens(report: AnalysisReport, color = true): string {
   ].join('\n');
 }
 
-export function renderFixSuggestions(report: AnalysisReport, color = true): string {
+export function renderFixSuggestions(
+  report: AnalysisReport,
+  plan: FixPlan,
+  color = true,
+): string {
   const c = new Chalk({ level: color ? 1 : 0 });
-  const suggestions = report.issues.filter(
-    (entry): entry is Issue & { suggestion: string } => Boolean(entry.suggestion),
-  );
-  if (suggestions.length === 0) return c.green('No fix suggestions.');
-  const lines = [c.bold('Suggested fixes (dry run)'), ''];
-  const seen = new Set<string>();
-  for (const entry of suggestions) {
-    const key = `${entry.ruleId}:${entry.path}:${entry.line ?? 0}:${entry.suggestion}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    lines.push(
-      `${severityLabel(c, entry.severity)} ${c.bold(entry.ruleId)} ${entry.path}${
-        entry.line ? `:${entry.line}` : ''
-      }`,
-      `  ${entry.suggestion}`,
-      '',
-    );
+  const reviewSuggestions = fixSuggestions(report, plan);
+  if (plan.fixes.length === 0 && reviewSuggestions.length === 0) {
+    return c.green('No fix suggestions.');
   }
+
+  const lines: string[] = [];
+  if (plan.fixes.length > 0) {
+    lines.push(c.bold('Safe fixes (preview)'), '');
+    for (const fix of plan.fixes) {
+      lines.push(
+        `${c.green('SAFE')} ${c.bold(fix.ruleId)} ${fix.path}:${fix.line}`,
+        `  ${fix.message}`,
+        '',
+      );
+    }
+  }
+  appendReviewSuggestions(lines, reviewSuggestions, c);
   lines.push(
-    c.dim('No files were changed. SkillBench v0.2 only provides suggestions.'),
+    c.dim(
+      `No files were changed. ${plan.fixes.length > 0 ? 'Run again with --write to apply only the deterministic SAFE fixes above.' : 'The remaining suggestions require human review.'}`,
+    ),
   );
+  return lines.join('\n').trimEnd();
+}
+
+export function renderFixResult(
+  report: AnalysisReport,
+  remainingPlan: FixPlan,
+  result: ApplyFixResult,
+  color = true,
+): string {
+  const c = new Chalk({ level: color ? 1 : 0 });
+  const lines = [
+    result.fixesApplied > 0
+      ? c.green(
+          `Applied ${result.fixesApplied} safe fix${result.fixesApplied === 1 ? '' : 'es'} across ${result.filesChanged} file${result.filesChanged === 1 ? '' : 's'}.`,
+        )
+      : c.dim('No deterministic safe fixes were available to apply.'),
+  ];
+  if (result.backups.length > 0) {
+    lines.push(c.dim(`Created ${result.backups.length} .skillbench.bak backup file(s).`));
+  }
+
+  const reviewSuggestions = fixSuggestions(report, remainingPlan);
+  if (remainingPlan.fixes.length > 0) {
+    lines.push('', c.yellow('Some safe fixes remain after writing:'), '');
+    for (const fix of remainingPlan.fixes) {
+      lines.push(`${c.green('SAFE')} ${c.bold(fix.ruleId)} ${fix.path}:${fix.line}`, `  ${fix.message}`, '');
+    }
+  }
+  appendReviewSuggestions(lines, reviewSuggestions, c);
   return lines.join('\n').trimEnd();
 }
 
@@ -183,6 +218,43 @@ export function renderSecurity(report: AnalysisReport, color = true): string {
     '',
     ...issues.flatMap((entry) => renderIssue(c, entry)),
   ].join('\n');
+}
+
+function fixSuggestions(
+  report: AnalysisReport,
+  plan: FixPlan,
+): (Issue & { suggestion: string })[] {
+  const safe = new Set(
+    plan.fixes.map((fix) => `${fix.ruleId}:${fix.path}:${fix.line}`),
+  );
+  const seen = new Set<string>();
+  return report.issues.filter((entry): entry is Issue & { suggestion: string } => {
+    if (!entry.suggestion) return false;
+    if (safe.has(`${entry.ruleId}:${entry.path}:${entry.line ?? 0}`)) return false;
+    const key = `${entry.ruleId}:${entry.path}:${entry.line ?? 0}:${entry.suggestion}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function appendReviewSuggestions(
+  lines: string[],
+  suggestions: (Issue & { suggestion: string })[],
+  c: ChalkInstance,
+): void {
+  if (suggestions.length === 0) return;
+  if (lines.length > 0 && lines.at(-1) !== '') lines.push('');
+  lines.push(c.bold('Review-only suggestions'), '');
+  for (const entry of suggestions) {
+    lines.push(
+      `${severityLabel(c, entry.severity)} ${c.bold(entry.ruleId)} ${entry.path}${
+        entry.line ? `:${entry.line}` : ''
+      }`,
+      `  ${entry.suggestion}`,
+      '',
+    );
+  }
 }
 
 function renderIssue(c: ChalkInstance, entry: Issue): string[] {
