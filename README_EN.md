@@ -90,22 +90,22 @@ The default analyzer runs locally, **never executes scanned instructions, and do
 
 ## CLI
 
-| Command                               | Purpose                                                       |
-| ------------------------------------- | ------------------------------------------------------------- |
-| `skillbench scan [target]`            | Full score, issue, token, and compatibility analysis          |
-| `skillbench score [target]`           | Overall and per-category scores                               |
-| `skillbench lint [target]`            | Rule findings with locations and remediation                  |
-| `skillbench security [target]`        | Security-focused findings                                     |
-| `skillbench token [target]`           | Token estimate, duplication, savings, and density             |
-| `skillbench compat [target]`          | Five-agent compatibility analysis                             |
-| `skillbench compare <before> <after>` | Score, token, issue, and compatibility regression comparison  |
-| `skillbench diff <before> <after>`    | Alias of `compare`                                            |
-| `skillbench rules [ruleId]`           | List rules or inspect one rule                                |
-| `skillbench fix [target]`             | Read-only safe-fix preview                                    |
-| `skillbench fix [target] --write`     | Explicitly apply deterministic SAFE fixes                     |
-| `skillbench benchmark <manifest>`     | Run the human-labeled rule benchmark                          |
-| `skillbench init [directory]`         | Create `.skillbench.yml`; missing directories are created     |
-| `skillbench badge [target]`           | Generate a shields.io Markdown badge                          |
+| Command                               | Purpose                                                      |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `skillbench scan [target]`            | Full score, issue, token, and compatibility analysis         |
+| `skillbench score [target]`           | Overall and per-category scores                              |
+| `skillbench lint [target]`            | Rule findings with locations and remediation                 |
+| `skillbench security [target]`        | Security-focused findings                                    |
+| `skillbench token [target]`           | Token estimate, duplication, savings, and density            |
+| `skillbench compat [target]`          | Five-agent compatibility analysis                            |
+| `skillbench compare <before> <after>` | Score, token, issue, and compatibility regression comparison |
+| `skillbench diff <before> <after>`    | Alias of `compare`                                           |
+| `skillbench rules [ruleId]`           | List rules or inspect one rule                               |
+| `skillbench fix [target]`             | Read-only safe-fix preview                                   |
+| `skillbench fix [target] --write`     | Explicitly apply deterministic SAFE fixes                    |
+| `skillbench benchmark <manifest>`     | Run the human-labeled rule benchmark                         |
+| `skillbench init [directory]`         | Create `.skillbench.yml`; missing directories are created    |
+| `skillbench badge [target]`           | Generate a shields.io Markdown badge                         |
 
 Common examples:
 
