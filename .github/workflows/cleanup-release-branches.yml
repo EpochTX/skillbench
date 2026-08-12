@@ -1,0 +1,67 @@
+name: Release Branch Cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/cleanup-release-branches.yml
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Delete merged and superseded release branches
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branches=(
+            'chore/actions-v7'
+            'chore/release-process-hardening'
+            'chore/supply-chain-hardening'
+            'chore/typecheck-maintainer-scripts'
+            'chore/v0.2.0-package-hardening'
+            'ci/1.0-package-security-gates'
+            'ci/1.0-package-security-gates-v2'
+            'ci/1.0-package-security-gates-v3'
+            'ci/1.0-publish-workflow'
+            'docs/harden-readme-ci-examples'
+            'docs/1.0-api-contract'
+            'feat/1.0-rule-benchmark'
+            'feat/1.0-safe-autofix'
+            'fix/stable-sarif-identity'
+            'fix/v0.2.0-release'
+            'fix/v1-release-finalization'
+            'fix/1.0-transactional-autofix'
+            'perf/1.0-scale-baseline'
+            'perf/1.0-scale-baseline-v2'
+            'release/1.0-bootstrap-recovery'
+            'release/1.0.0'
+            'test/all-workflow-supply-chain-policy'
+            'test/1.0-built-cli-contract'
+            'test/1.0-security-context'
+            'test/1.0-security-context-v2'
+          )
+
+          for branch in "${branches[@]}"; do
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$branch" >/dev/null 2>&1; then
+              echo "Deleting $branch"
+              gh api --method DELETE "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch"
+            fi
+          done
+
+          remaining="$(gh api --paginate "repos/$GITHUB_REPOSITORY/branches?per_page=100" --jq '.[].name' | grep -v '^main$' || true)"
+          if [[ -n "$remaining" ]]; then
+            echo "Unexpected non-main branches remain:" >&2
+            echo "$remaining" >&2
+            exit 1
+          fi
+
+          echo 'All confirmed temporary branches removed; only main remains.'
