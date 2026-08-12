@@ -6,6 +6,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Added
 
+- The `Publish` workflow adds a read-only Node.js 24 release preflight plus guarded npm publication with provenance, registry metadata verification, 1.0 bootstrap support, version-tag validation, and GitHub release creation only after package publication succeeds.
 - The `Package Integrity` workflow validates the real npm tarball as an installed consumer package on Node.js 20, Node.js 22, and Windows, including package-root ESM imports, published TypeScript declarations, the installed CLI, package contents, and a real scan.
 - `pnpm run audit:prod` makes known high or critical production-dependency advisories an explicit release blocker without blanket ignores or automatic audit fixes.
 - `docs/PERFORMANCE.md` and the `Performance Guard` workflow define a deterministic 120-file repository-scale baseline with auditable elapsed-time and RSS regression ceilings for the 1.0 release track.
