@@ -2,7 +2,7 @@ version: 1
 thresholds:
   minPrecision: 1
   minRecall: 1
-  minRuleCoverage: 0.5
+  minRuleCoverage: 1
 cases:
   - id: clean-skill
     target: ../fixtures/good-skill/SKILL.md
@@ -40,3 +40,58 @@ cases:
   - id: multiplatform-clean-skill
     target: ../fixtures/multiplatform-skill/SKILL.md
     expectedRules: []
+
+  - id: unusually-long-instruction
+    target: ../../.skillbench-output/benchmark-fixtures/long-instruction.txt
+    expectedRules:
+      - SB002
+
+  - id: vague-language-density
+    target: ../../.skillbench-output/benchmark-fixtures/vague.txt
+    expectedRules:
+      - SB005
+
+  - id: emphasis-overuse
+    target: ../../.skillbench-output/benchmark-fixtures/emphasis.txt
+    expectedRules:
+      - SB007
+
+  - id: repeated-directives
+    target: ../../.skillbench-output/benchmark-fixtures/repeated-directives.txt
+    expectedRules:
+      - SB201
+
+  - id: markdown-noise
+    target: ../../.skillbench-output/benchmark-fixtures/markdown-noise.txt
+    expectedRules:
+      - SB202
+
+  - id: examples-dominate
+    target: ../../.skillbench-output/benchmark-fixtures/examples-dominant.txt
+    expectedRules:
+      - SB203
+
+  - id: weak-structure
+    target: ../../.skillbench-output/benchmark-fixtures/weak-structure.txt
+    expectedRules:
+      - SB300
+
+  - id: oversized-section
+    target: ../../.skillbench-output/benchmark-fixtures/oversized-section.txt
+    expectedRules:
+      - SB301
+
+  - id: oversized-paragraph
+    target: ../../.skillbench-output/benchmark-fixtures/oversized-paragraph.txt
+    expectedRules:
+      - SB302
+
+  - id: platform-metadata
+    target: ../../.skillbench-output/benchmark-fixtures/platform-metadata/SKILL.md
+    expectedRules:
+      - SB401
+
+  - id: scoped-metadata
+    target: ../../.skillbench-output/benchmark-fixtures/scoped/.cursor/rules/invalid.mdc
+    expectedRules:
+      - SB402
