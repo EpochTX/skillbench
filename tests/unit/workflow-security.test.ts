@@ -1,12 +1,17 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
 import YAML from 'yaml';
 import { describe, expect, it } from 'vitest';
 
 const root = path.resolve(import.meta.dirname, '../..');
+const workflowDirectory = path.join(root, '.github', 'workflows');
+const workflowPaths = readdirSync(workflowDirectory)
+  .filter((entry) => /\.ya?ml$/u.test(entry))
+  .map((entry) => `.github/workflows/${entry}`)
+  .sort();
 const actionReferencePaths = [
-  '.github/workflows/ci.yml',
+  ...workflowPaths,
   'examples/github-actions/skillbench-sarif.yml',
   'README.md',
   'README_EN.md',
@@ -33,15 +38,20 @@ describe('workflow supply-chain policy', () => {
     }
   });
 
-  it('does not persist checkout credentials in project CI', () => {
-    const workflow = read('.github/workflows/ci.yml');
-    const checkoutCount = [...workflow.matchAll(/uses:\s+actions\/checkout@/gu)].length;
-    const disabledCredentialCount = [
-      ...workflow.matchAll(/persist-credentials:\s+false/gu),
-    ].length;
+  it('does not persist checkout credentials in any project workflow', () => {
+    for (const filePath of workflowPaths) {
+      const workflow = read(filePath);
+      const checkoutCount = [...workflow.matchAll(/uses:\s+actions\/checkout@/gu)].length;
+      const disabledCredentialCount = [
+        ...workflow.matchAll(/persist-credentials:\s+false/gu),
+      ].length;
 
-    expect(checkoutCount).toBeGreaterThan(0);
-    expect(disabledCredentialCount).toBe(checkoutCount);
+      expect(checkoutCount, `${filePath} should check out the repository`).toBeGreaterThan(0);
+      expect(
+        disabledCredentialCount,
+        `${filePath} must disable checkout credential persistence`,
+      ).toBe(checkoutCount);
+    }
   });
 
   it('configures weekly dependency updates and preserves Node 20 majors', () => {
