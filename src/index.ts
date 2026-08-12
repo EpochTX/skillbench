@@ -5,6 +5,16 @@ export type {
   CompatibilityChange,
   ReportSnapshot,
 } from './core/compare.js';
+export { applyFixPlan, FixConflictError, planSafeFixes } from './core/fix.js';
+export type {
+  ApplyFixOptions,
+  ApplyFixResult,
+  FileFixPlan,
+  FixPlan,
+  PlanFixOptions,
+  SafeFix,
+  SafeFixKind,
+} from './core/fix.js';
 export { issueFingerprint, issueIdentity } from './core/fingerprint.js';
 export { calculateScore, scoringPolicy } from './core/scoring.js';
 export {

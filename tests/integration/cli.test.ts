@@ -1,11 +1,13 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
 const root = path.resolve(import.meta.dirname, '../..');
+const duplicateParagraph =
+  'Keep this exact plain prose instruction because it is intentionally long enough for duplicate detection.';
 
 function runCli(...arguments_: string[]) {
   return spawnSync(process.execPath, ['--import=tsx', 'src/cli.ts', ...arguments_], {
@@ -68,7 +70,7 @@ describe('CLI smoke tests', () => {
     expect(result.stdout).not.toContain('sk-proj-1234567890abcdefghijklmnopqrstuv');
   });
 
-  it('keeps fix mode read-only', () => {
+  it('keeps fix preview mode read-only', () => {
     const result = runCli(
       'fix',
       'tests/fixtures/bad-skill/SKILL.md',
@@ -77,6 +79,48 @@ describe('CLI smoke tests', () => {
     );
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('No files were changed');
+  });
+
+  it('applies only deterministic safe fixes with an optional backup', () => {
+    const directory = mkdtempSync(path.join(os.tmpdir(), 'skillbench-cli-fix-'));
+    const filePath = path.join(directory, 'SKILL.md');
+    const source = [
+      '---',
+      'name: skillbench-cli-fix',
+      'description: A deterministic fixture used to verify the SkillBench safe fix command.',
+      '---',
+      '# Purpose',
+      '',
+      duplicateParagraph,
+      '',
+      duplicateParagraph,
+      '',
+      'Keep this distinct final instruction unchanged.',
+      '',
+    ].join('\n');
+    try {
+      writeFileSync(filePath, source, 'utf8');
+      const result = runCli('fix', filePath, '--write', '--backup', '--no-color');
+
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain('Applied 1 safe fix');
+      expect(existsSync(`${filePath}.skillbench.bak`)).toBe(true);
+      expect(readFileSync(`${filePath}.skillbench.bak`, 'utf8')).toBe(source);
+      expect(readFileSync(filePath, 'utf8').split(duplicateParagraph)).toHaveLength(2);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects backup mode unless writes are explicitly enabled', () => {
+    const result = runCli(
+      'fix',
+      'tests/fixtures/good-skill/SKILL.md',
+      '--backup',
+      '--no-color',
+    );
+    expect(result.status).toBe(2);
+    expect(result.stderr).toContain('--backup requires --write');
   });
 
   it('runs score, compatibility, token, security, and badge commands', () => {

@@ -7,6 +7,9 @@ describe('public API', () => {
     expect(typeof api.analyzeTarget).toBe('function');
     expect(typeof api.analyzeDocuments).toBe('function');
     expect(typeof api.compareReports).toBe('function');
+    expect(typeof api.planSafeFixes).toBe('function');
+    expect(typeof api.applyFixPlan).toBe('function');
+    expect(api.FixConflictError).toBeTypeOf('function');
     expect(typeof api.issueFingerprint).toBe('function');
     expect(typeof api.issueIdentity).toBe('function');
     expect(typeof api.calculateScore).toBe('function');

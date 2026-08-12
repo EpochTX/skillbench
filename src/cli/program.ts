@@ -7,6 +7,7 @@ import { initializeConfig } from '../config/init.js';
 import { loadConfig } from '../config/loader.js';
 import { analyzeTarget } from '../core/analyze.js';
 import { compareReports } from '../core/compare.js';
+import { applyFixPlan, planSafeFixes } from '../core/fix.js';
 import type { AnalysisReport, Issue, Severity } from '../core/types.js';
 import { severities } from '../core/types.js';
 import { builtInRules } from '../rules/registry.js';
@@ -18,6 +19,7 @@ import { renderRules } from '../reporters/rules.js';
 import { SarifReporter } from '../reporters/sarif.js';
 import {
   renderCompatibility,
+  renderFixResult,
   renderFixSuggestions,
   renderLint,
   renderScore,
@@ -29,7 +31,7 @@ import { redactPotentialSecrets } from '../utils/text.js';
 import { VERSION } from '../version.js';
 
 type OutputFormat = 'terminal' | 'json' | 'sarif' | 'github';
-type View = 'scan' | 'score' | 'lint' | 'compat' | 'token' | 'security' | 'fix';
+type View = 'scan' | 'score' | 'lint' | 'compat' | 'token' | 'security';
 
 interface AnalysisOptions {
   format: OutputFormat;
@@ -38,7 +40,12 @@ interface AnalysisOptions {
   output?: string;
   ci?: boolean;
   failOn?: Severity;
+}
+
+interface FixOptions extends AnalysisOptions {
   dryRun?: boolean;
+  write?: boolean;
+  backup?: boolean;
 }
 
 interface CompareOptions {
@@ -91,10 +98,15 @@ export function createProgram(): Command {
     program
       .command('fix')
       .argument('[target]', 'file or directory to inspect', '.')
-      .description('Print safe fix suggestions without changing files.')
-      .option('--dry-run', 'show proposed fixes without writing (v0.2 behavior)'),
-  ).action(async (target: string, options: AnalysisOptions) => {
-    await executeAnalysis(target, options, 'fix');
+      .description('Preview or apply deterministic safe fixes.')
+      .option('--dry-run', 'explicitly preview fixes without changing files')
+      .option('--write', 'apply only deterministic SAFE fixes')
+      .option(
+        '--backup',
+        'create a .skillbench.bak copy before each modified file (requires --write)',
+      ),
+  ).action(async (target: string, options: FixOptions) => {
+    await executeFix(target, options);
   });
 
   configureAnalysisCommand(
@@ -264,21 +276,69 @@ async function executeAnalysis(
   }
 }
 
+async function executeFix(target: string, options: FixOptions): Promise<void> {
+  if (options.write && options.dryRun) {
+    throw new InvalidArgumentError('Use either --write or --dry-run, not both.');
+  }
+  if (options.backup && !options.write) {
+    throw new InvalidArgumentError('--backup requires --write.');
+  }
+
+  const analysisOptions = options.config ? { configPath: options.config } : {};
+  const [report, plan] = await Promise.all([
+    analyzeTarget(target, analysisOptions),
+    planSafeFixes(target, analysisOptions),
+  ]);
+
+  if (!options.write) {
+    await emitOutput(renderFixView(report, plan, options), options.output);
+    return;
+  }
+
+  const result = await applyFixPlan(plan, { backup: options.backup ?? false });
+  const [updatedReport, remainingPlan] = await Promise.all([
+    analyzeTarget(target, analysisOptions),
+    planSafeFixes(target, analysisOptions),
+  ]);
+
+  if (options.format === 'terminal') {
+    await emitOutput(
+      renderFixResult(updatedReport, remainingPlan, result, options.color),
+      options.output,
+    );
+    return;
+  }
+  await emitOutput(renderMachineReport(updatedReport, options.format), options.output);
+}
+
+function renderFixView(
+  report: AnalysisReport,
+  plan: Awaited<ReturnType<typeof planSafeFixes>>,
+  options: FixOptions,
+): string {
+  if (options.format !== 'terminal') return renderMachineReport(report, options.format);
+  return renderFixSuggestions(report, plan, options.color);
+}
+
 function renderView(
   report: AnalysisReport,
   options: AnalysisOptions,
   view: View,
 ): string {
-  if (options.format === 'json') return new JsonReporter().render(report);
-  if (options.format === 'sarif') return new SarifReporter().render(report);
-  if (options.format === 'github') return new GitHubReporter().render(report);
+  if (options.format !== 'terminal') return renderMachineReport(report, options.format);
   if (view === 'score') return renderScore(report, options.color);
   if (view === 'lint') return renderLint(report, options.color);
   if (view === 'compat') return renderCompatibility(report, options.color);
   if (view === 'token') return renderTokens(report, options.color);
   if (view === 'security') return renderSecurity(report, options.color);
-  if (view === 'fix') return renderFixSuggestions(report, options.color);
   return new TerminalReporter(options.color).render(report);
+}
+
+function renderMachineReport(report: AnalysisReport, format: OutputFormat): string {
+  if (format === 'json') return new JsonReporter().render(report);
+  if (format === 'sarif') return new SarifReporter().render(report);
+  if (format === 'github') return new GitHubReporter().render(report);
+  return new TerminalReporter(false).render(report);
 }
 
 function shouldFailIssues(issues: readonly Issue[], threshold: Severity): boolean {
