@@ -77,15 +77,15 @@ export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchm
   const caseResults: RuleBenchmarkCaseResult[] = [];
 
   for (const benchmarkCase of manifest.cases) {
-    const target = path.resolve(manifestDirectory, benchmarkCase.target);
-    const report = await analyzeTarget(target);
+    const resolvedTarget = path.resolve(manifestDirectory, benchmarkCase.target);
+    const report = await analyzeTarget(resolvedTarget);
     const expected = uniqueSorted(benchmarkCase.expectedRules);
     const actual = uniqueSorted(report.issues.map((issue) => issue.ruleId));
     const expectedSet = new Set(expected);
     const actualSet = new Set(actual);
     caseResults.push({
       id: benchmarkCase.id,
-      target,
+      target: normalizeReportPath(benchmarkCase.target),
       expectedRules: expected,
       actualRules: actual,
       truePositives: expected.filter((ruleId) => actualSet.has(ruleId)),
@@ -105,7 +105,7 @@ export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchm
 
   return {
     version: 1,
-    manifestPath: absoluteManifest,
+    manifestPath: normalizeReportPath(manifestPath),
     cases: caseResults,
     totals: {
       cases: caseResults.length,
@@ -177,6 +177,10 @@ function validateManifestSemantics(
 
 function uniqueSorted(values: readonly string[]): string[] {
   return [...new Set(values)].sort((left, right) => left.localeCompare(right));
+}
+
+function normalizeReportPath(value: string): string {
+  return value.replaceAll('\\', '/');
 }
 
 function ratio(numerator: number, denominator: number): number {
