@@ -5,11 +5,7 @@ export type {
   CompatibilityChange,
   ReportSnapshot,
 } from './core/compare.js';
-export {
-  applyFixPlan,
-  FixConflictError,
-  planSafeFixes,
-} from './core/fix.js';
+export { applyFixPlan, FixConflictError, planSafeFixes } from './core/fix.js';
 export type {
   ApplyFixOptions,
   ApplyFixResult,
