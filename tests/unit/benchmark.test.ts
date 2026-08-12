@@ -6,13 +6,15 @@ import { describe, expect, it } from 'vitest';
 
 import { BenchmarkError, runRuleBenchmark } from '../../src/core/benchmark.js';
 
-const corpus = path.resolve('tests/corpus/rules.yml');
+const corpus = 'tests/corpus/rules.yml';
 
 describe('rule benchmark', () => {
   it('holds the repository corpus at perfect precision and recall', async () => {
     const report = await runRuleBenchmark(corpus);
 
     expect(report.passed).toBe(true);
+    expect(report.manifestPath).toBe('tests/corpus/rules.yml');
+    expect(report.cases[0]?.target).toBe('../fixtures/good-skill/SKILL.md');
     expect(report.totals.cases).toBe(6);
     expect(report.totals.truePositives).toBe(13);
     expect(report.totals.falsePositives).toBe(0);
