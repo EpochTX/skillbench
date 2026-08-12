@@ -31,10 +31,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - if: failure() && matrix.node == 20
-        run: |
-          pnpm exec prettier scripts/verify-packed-package.ts --write
-          git diff -- scripts/verify-packed-package.ts
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
