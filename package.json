@@ -1,6 +1,6 @@
 {
   "name": "skillbench-ai",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "The open benchmark, linter and compatibility checker for AI Agent Skills.",
   "type": "module",
   "main": "./dist/index.js",
