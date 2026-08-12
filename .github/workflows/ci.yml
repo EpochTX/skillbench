@@ -36,6 +36,9 @@ jobs:
       - run: pnpm benchmark:rules
       - run: pnpm build
       - run: pnpm test:dist
+      - run: pnpm package:smoke
+      - if: matrix.node == 22
+        run: pnpm audit:prod
       - if: matrix.node == 22
         run: pnpm pack:check
 
@@ -59,3 +62,5 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm test:dist
+      - if: matrix.os == 'windows-latest'
+        run: pnpm package:smoke
