@@ -21,6 +21,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
+- Built CLI verification now exercises the documented production command surface after every build, including Unicode and spaced paths, CRLF input, `--output`, `--no-color`, JSON stdout purity, safe fixes, regression exits, initialization, badges, and the labeled rule benchmark.
 - Chinese and English READMEs now document the real safe-write behavior, 24/24 rule benchmark gate, public API contract, 1.0 release criteria, and current hardening roadmap.
 - The packaged file allowlist now includes `docs/API.md` so npm consumers receive the supported API contract.
 - Source verification and pre-publication checks now fail when the repository rule corpus misses any declared precision, recall, or coverage threshold.
