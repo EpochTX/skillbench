@@ -1,4 +1,10 @@
 export { analyzeDocuments, analyzeTarget } from './core/analyze.js';
+export { BenchmarkError, runRuleBenchmark } from './core/benchmark.js';
+export type {
+  RuleBenchmarkCaseResult,
+  RuleBenchmarkReport,
+  RuleBenchmarkThresholds,
+} from './core/benchmark.js';
 export { compareReports } from './core/compare.js';
 export type {
   ComparisonReport,
