@@ -34,8 +34,18 @@ jobs:
       - if: failure() && matrix.node == 20
         run: |
           pnpm eslint tests/unit/public-api.test.ts tests/types/public-api-contract.ts
+          mkdir -p .skillbench-output/prettier-formatted/docs .skillbench-output/prettier-formatted/tests/unit .skillbench-output/prettier-formatted/tests/types
           pnpm prettier --write README.md README_EN.md CHANGELOG.md docs/API.md tests/unit/public-api.test.ts tests/types/public-api-contract.ts
-          git diff -- README.md README_EN.md CHANGELOG.md docs/API.md tests/unit/public-api.test.ts tests/types/public-api-contract.ts
+          cp README.md README_EN.md CHANGELOG.md .skillbench-output/prettier-formatted/
+          cp docs/API.md .skillbench-output/prettier-formatted/docs/API.md
+          cp tests/unit/public-api.test.ts .skillbench-output/prettier-formatted/tests/unit/public-api.test.ts
+          cp tests/types/public-api-contract.ts .skillbench-output/prettier-formatted/tests/types/public-api-contract.ts
+      - if: failure() && matrix.node == 20
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: prettier-formatted-api-contract
+          path: .skillbench-output/prettier-formatted
+          if-no-files-found: error
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
