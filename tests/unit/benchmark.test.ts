@@ -36,7 +36,9 @@ describe('rule benchmark', () => {
         'utf8',
       );
 
-      await expect(runRuleBenchmark(manifestPath)).rejects.toBeInstanceOf(BenchmarkError);
+      await expect(runRuleBenchmark(manifestPath)).rejects.toBeInstanceOf(
+        BenchmarkError,
+      );
       await expect(runRuleBenchmark(manifestPath)).rejects.toThrow('unknown rule');
     } finally {
       await rm(directory, { recursive: true, force: true });
