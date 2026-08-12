@@ -1,14 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
-import {
-  access,
-  copyFile,
-  lstat,
-  open,
-  readFile,
-  rename,
-  rm,
-} from 'node:fs/promises';
+import { access, copyFile, lstat, open, readFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { loadConfig } from '../config/loader.js';
@@ -113,7 +105,11 @@ export async function applyFixPlan(
   const committed: PreparedFile[] = [];
   try {
     for (const entry of prepared) {
-      entry.tempPath = await stageReplacement(entry.file.filePath, entry.output, entry.mode);
+      entry.tempPath = await stageReplacement(
+        entry.file.filePath,
+        entry.output,
+        entry.mode,
+      );
       staged.push(entry);
     }
 
@@ -133,7 +129,8 @@ export async function applyFixPlan(
     }
 
     for (const entry of prepared) {
-      if (!entry.tempPath) throw new Error(`Missing staged replacement for ${entry.file.relativePath}`);
+      if (!entry.tempPath)
+        throw new Error(`Missing staged replacement for ${entry.file.relativePath}`);
       await rename(entry.tempPath, entry.file.filePath);
       delete entry.tempPath;
       committed.push(entry);
@@ -145,9 +142,10 @@ export async function applyFixPlan(
       await cleanupCreatedBackups(createdBackups);
     }
     if (rollbackFailures.length > 0) {
-      const recovery = createdBackups.length > 0
-        ? ` Recovery backups were kept: ${createdBackups.join(', ')}.`
-        : '';
+      const recovery =
+        createdBackups.length > 0
+          ? ` Recovery backups were kept: ${createdBackups.join(', ')}.`
+          : '';
       throw new Error(
         `Safe-fix write failed and rollback was incomplete for: ${rollbackFailures.join(', ')}.${recovery}`,
         { cause: error },
@@ -205,7 +203,9 @@ function assertPlannedSource(file: FileFixPlan, raw: string): void {
   }
 }
 
-async function assertSourcesUnchanged(prepared: readonly PreparedFile[]): Promise<void> {
+async function assertSourcesUnchanged(
+  prepared: readonly PreparedFile[],
+): Promise<void> {
   for (const entry of prepared) {
     const info = await lstat(entry.file.filePath);
     if (!info.isFile() || info.isSymbolicLink()) {
@@ -285,7 +285,9 @@ async function cleanupTemporaryFiles(entries: readonly PreparedFile[]): Promise<
 }
 
 async function cleanupCreatedBackups(backups: readonly string[]): Promise<void> {
-  await Promise.all(backups.map((backup) => rm(backup, { force: true }).catch(() => undefined)));
+  await Promise.all(
+    backups.map((backup) => rm(backup, { force: true }).catch(() => undefined)),
+  );
 }
 
 function planDocumentFixes(document: ParsedDocument): {
