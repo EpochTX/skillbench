@@ -43,6 +43,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Fixed
 
+- `skillbench init <directory>` now creates missing nested directories, including paths with Unicode characters and spaces, before writing `.skillbench.yml`.
 - The README copy-paste source CI examples now invoke the required `scan` subcommand instead of passing the target directly to the command root.
 - Stable issue fingerprints no longer change when a rule severity is overridden by configuration.
 - SARIF artifact URIs encode reserved filename characters such as `#` and `?` as path data.
