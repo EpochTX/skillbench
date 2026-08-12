@@ -31,6 +31,10 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - if: failure() && matrix.node == 20
+        run: |
+          pnpm exec prettier README.md README_EN.md --write
+          git diff -- README.md README_EN.md
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
