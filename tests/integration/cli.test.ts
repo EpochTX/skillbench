@@ -193,16 +193,20 @@ describe('CLI smoke tests', () => {
     const report = JSON.parse(result.stdout) as {
       passed: boolean;
       totals: {
+        cases: number;
         precision: number;
         recall: number;
+        ruleCoverage: number;
         coveredRules: number;
         totalRules: number;
       };
     };
     expect(report.passed).toBe(true);
+    expect(report.totals.cases).toBe(17);
     expect(report.totals.precision).toBe(1);
     expect(report.totals.recall).toBe(1);
-    expect(report.totals.coveredRules).toBe(13);
+    expect(report.totals.ruleCoverage).toBe(1);
+    expect(report.totals.coveredRules).toBe(24);
     expect(report.totals.totalRules).toBe(24);
   });
 
