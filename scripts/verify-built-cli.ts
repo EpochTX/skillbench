@@ -13,6 +13,7 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const cliPath = path.join(root, 'dist', 'cli.js');
 const ansiControlSequencePrefix = `${String.fromCharCode(27)}[`;
+const dangerousFixture = 'tests/fixtures/dangerous-skill/SKILL.md';
 const duplicateParagraph =
   'Keep this exact plain prose instruction because it is intentionally long enough for duplicate detection.';
 
@@ -76,7 +77,6 @@ function verifyJsonScan(target: string, outputPath: string): void {
 function verifyHumanViews(target: string): void {
   const checks: [string, string][] = [
     ['score', 'Overall Score:'],
-    ['lint', 'Lint Report'],
     ['compat', 'Compatibility Report'],
     ['token', 'Token Efficiency'],
   ];
@@ -86,11 +86,13 @@ function verifyHumanViews(target: string): void {
     assertNoAnsi(result.stdout, `${command} --no-color`);
   }
 
-  const security = assertSuccess(
-    run('security', 'tests/fixtures/dangerous-skill/SKILL.md', '--no-color'),
-    'security',
-  );
+  const lint = assertSuccess(run('lint', dangerousFixture, '--no-color'), 'lint');
+  assert(lint.stdout.includes('SB100'), 'lint did not expose expected rule findings');
+  assertNoAnsi(lint.stdout, 'lint --no-color');
+
+  const security = assertSuccess(run('security', dangerousFixture, '--no-color'), 'security');
   assert(security.stdout.includes('Security Report'), 'security output contract mismatch');
+  assertNoAnsi(security.stdout, 'security --no-color');
 }
 
 function verifyFixFlow(target: string): void {
@@ -121,7 +123,7 @@ function verifyCompare(target: string): void {
     run(
       'compare',
       target,
-      'tests/fixtures/dangerous-skill/SKILL.md',
+      dangerousFixture,
       '--format',
       'json',
       '--ci',
@@ -173,7 +175,7 @@ function verifyExitCodes(target: string): void {
   assertStatus(
     run(
       'scan',
-      'tests/fixtures/dangerous-skill/SKILL.md',
+      dangerousFixture,
       '--ci',
       '--fail-on',
       'critical',
