@@ -1,11 +1,12 @@
-import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import YAML from 'yaml';
 import { z, ZodError } from 'zod';
 
+import { defaultConfig } from '../config/schema.js';
+import { discoverDocuments } from '../parser/discovery.js';
 import { builtInRules } from '../rules/registry.js';
-import { analyzeTarget } from './analyze.js';
+import { analyzeDocuments } from './analyze.js';
 
 const benchmarkCaseSchema = z
   .object({
@@ -78,7 +79,7 @@ export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchm
 
   for (const benchmarkCase of manifest.cases) {
     const resolvedTarget = path.resolve(manifestDirectory, benchmarkCase.target);
-    const report = await analyzeTarget(resolvedTarget);
+    const report = await analyzeBenchmarkTarget(benchmarkCase.id, resolvedTarget);
     const expected = uniqueSorted(benchmarkCase.expectedRules);
     const actual = uniqueSorted(report.issues.map((issue) => issue.ruleId));
     const expectedSet = new Set(expected);
@@ -126,11 +127,28 @@ export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchm
   };
 }
 
+async function analyzeBenchmarkTarget(caseId: string, target: string) {
+  try {
+    const documents = await discoverDocuments(target);
+    return analyzeDocuments(documents, target, {
+      ...defaultConfig,
+      rules: {},
+      score: { ...defaultConfig.score },
+      ignore: [],
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    throw new BenchmarkError(`Benchmark case ${caseId} could not be analyzed: ${detail}`);
+  }
+}
+
 async function loadManifest(
   manifestPath: string,
 ): Promise<z.infer<typeof benchmarkManifestSchema>> {
   try {
-    const raw = await readFile(manifestPath, 'utf8');
+    const raw = await import('node:fs/promises').then(({ readFile }) =>
+      readFile(manifestPath, 'utf8'),
+    );
     const parsed: unknown = YAML.parse(raw);
     return benchmarkManifestSchema.parse(parsed);
   } catch (error) {
