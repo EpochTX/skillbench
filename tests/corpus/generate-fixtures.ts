@@ -20,10 +20,7 @@ export async function generateBenchmarkFixtures(): Promise<void> {
     writeFixture('oversized-section.txt', oversizedSectionInstruction()),
     writeFixture('long-instruction.txt', longInstruction()),
     writeFixture('examples-dominant.txt', examplesDominantInstruction()),
-    writeFixture(
-      'platform-metadata/SKILL.md',
-      skillWithPlatformMetadata(),
-    ),
+    writeFixture('platform-metadata/SKILL.md', skillWithPlatformMetadata()),
     writeFixture('scoped/.cursor/rules/invalid.mdc', baselineInstruction()),
   ]);
 }
@@ -90,7 +87,9 @@ function repeatedDirectivesInstruction(): string {
 
 function markdownNoiseInstruction(): string {
   const separators = Array.from({ length: 10 }, () => '---');
-  return [baselineInstruction(), '', '# Decorative Area', '', ...separators].join('\n\n');
+  return [baselineInstruction(), '', '# Decorative Area', '', ...separators].join(
+    '\n\n',
+  );
 }
 
 function weakStructureInstruction(): string {
@@ -106,7 +105,9 @@ function oversizedParagraphInstruction(): string {
     { length: 340 },
     (_, index) => `segment${String(index + 1).padStart(4, '0')}`,
   );
-  return [baselineInstruction(), '', '# Dense Reference', '', words.join(' ')].join('\n');
+  return [baselineInstruction(), '', '# Dense Reference', '', words.join(' ')].join(
+    '\n',
+  );
 }
 
 function oversizedSectionInstruction(): string {
