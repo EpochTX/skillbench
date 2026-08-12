@@ -135,7 +135,7 @@ export async function applyFixPlan(
     for (const entry of prepared) {
       if (!entry.tempPath) throw new Error(`Missing staged replacement for ${entry.file.relativePath}`);
       await rename(entry.tempPath, entry.file.filePath);
-      entry.tempPath = undefined;
+      delete entry.tempPath;
       committed.push(entry);
     }
   } catch (error) {
@@ -279,7 +279,7 @@ async function cleanupTemporaryFiles(entries: readonly PreparedFile[]): Promise<
     entries.map(async (entry) => {
       if (!entry.tempPath) return;
       await rm(entry.tempPath, { force: true }).catch(() => undefined);
-      entry.tempPath = undefined;
+      delete entry.tempPath;
     }),
   );
 }
