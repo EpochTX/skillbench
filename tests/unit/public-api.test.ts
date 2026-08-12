@@ -39,7 +39,7 @@ describe('public API', () => {
   it('keeps core registries and metadata canonical', () => {
     expect(api.builtInRules).toHaveLength(24);
     expect(api.builtInAdapters).toHaveLength(5);
-    expect(api.VERSION).toBe('0.2.0');
+    expect(api.VERSION).toBe('1.0.0');
     expect(api.SCHEMA_VERSION).toBe('0.1');
     expect(api.PROJECT_URL).toBe('https://github.com/EpochTX/skillbench');
   });
