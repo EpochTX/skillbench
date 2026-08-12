@@ -31,10 +31,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
-      - if: failure() && matrix.node == 20
-        run: |
-          pnpm prettier --write src/core/benchmark.ts tests/corpus/generate-fixtures.ts tests/unit/benchmark.test.ts
-          git diff -- src/core/benchmark.ts tests/corpus/generate-fixtures.ts tests/unit/benchmark.test.ts
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
