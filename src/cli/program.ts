@@ -6,12 +6,14 @@ import { Command, InvalidArgumentError, Option } from 'commander';
 import { initializeConfig } from '../config/init.js';
 import { loadConfig } from '../config/loader.js';
 import { analyzeTarget } from '../core/analyze.js';
+import { runRuleBenchmark } from '../core/benchmark.js';
 import { compareReports } from '../core/compare.js';
 import { applyFixPlan, planSafeFixes } from '../core/fix.js';
 import type { AnalysisReport, Issue, Severity } from '../core/types.js';
 import { severities } from '../core/types.js';
 import { builtInRules } from '../rules/registry.js';
 import { renderBadge } from '../reporters/badge.js';
+import { renderRuleBenchmark } from '../reporters/benchmark.js';
 import { renderComparison } from '../reporters/compare.js';
 import { GitHubReporter } from '../reporters/github.js';
 import { JsonReporter } from '../reporters/json.js';
@@ -55,6 +57,13 @@ interface CompareOptions {
   output?: string;
   ci?: boolean;
   failOn?: Severity;
+}
+
+interface BenchmarkOptions {
+  format: 'terminal' | 'json';
+  color: boolean;
+  output?: string;
+  ci?: boolean;
 }
 
 export function createProgram(): Command {
@@ -178,6 +187,30 @@ export function createProgram(): Command {
       ) {
         process.exitCode = 1;
       }
+    });
+
+  program
+    .command('benchmark')
+    .argument('<manifest>', 'labeled rule benchmark manifest')
+    .description('Measure deterministic rule precision, recall, and corpus coverage.')
+    .addOption(
+      new Option('--format <format>', 'output format')
+        .choices(['terminal', 'json'])
+        .default('terminal'),
+    )
+    .option('-o, --output <path>', 'write the rendered benchmark report to a file')
+    .option('--no-color', 'disable ANSI colors')
+    .option('--ci', 'exit 1 when benchmark thresholds are not met')
+    .action(async (manifest: string, options: BenchmarkOptions) => {
+      const report = await runRuleBenchmark(manifest);
+      await emitOutput(
+        renderRuleBenchmark(report, {
+          format: options.format,
+          color: options.color,
+        }),
+        options.output,
+      );
+      if (options.ci && !report.passed) process.exitCode = 1;
     });
 
   program
