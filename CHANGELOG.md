@@ -7,7 +7,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 ### Added
 
 - `skillbench benchmark <manifest>` measures case-by-rule precision, recall, built-in-rule coverage, false positives, and false negatives from a labeled YAML corpus.
-- The initial repository corpus labels six existing fixtures and covers 13 of 24 built-in rules with strict 100% precision and recall thresholds; 1.0 release criteria require expanding coverage to all built-in rules.
+- The maintained repository corpus now combines six full-stack fixtures with deterministic generated threshold fixtures: 17 labeled cases cover all 24 built-in rules at strict 100% precision, 100% recall, and 100% rule-coverage thresholds.
+- Generated benchmark inputs are reproducible and isolated from local SkillBench configuration; expected rule labels remain human-authored and are never regenerated from analyzer output.
 - The rule benchmark is available through the public TypeScript API and runs against both source and built CLI paths in verification.
 - `docs/1.0-RELEASE-CRITERIA.md` defines auditable blockers for deterministic rule quality, CLI/API stability, safe writes, schema compatibility, packaging, security, performance, and release execution.
 - `skillbench fix --write` can apply a deliberately narrow class of deterministic safe fixes while the default fix mode remains read-only.
@@ -18,8 +19,9 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
-- Source verification and pre-publication checks now fail when the repository rule corpus misses its declared precision, recall, or coverage thresholds.
-- Built CLI smoke tests rerun the labeled benchmark on Node.js and both supported desktop runner platforms.
+- Source verification and pre-publication checks now fail when the repository rule corpus misses any declared precision, recall, or coverage threshold.
+- Benchmark machine reports keep manifest-relative portable paths rather than runner-specific absolute working-directory paths.
+- Built CLI smoke tests regenerate and rerun the full labeled benchmark on Node.js and both supported desktop runner platforms.
 - Safe-fix writes are staged into same-directory temporary files and committed with rename-based replacement instead of direct truncating writes.
 - Safe-fix apply revalidates all planned sources before commit, preflights every backup destination, preserves permission bits, and attempts rollback if a later file replacement fails.
 - Temporary safe-fix files are cleaned after successful writes and on recoverable failures; recovery backups are retained when rollback cannot complete.
