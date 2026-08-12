@@ -1,5 +1,13 @@
 import { spawnSync, type SpawnSyncOptionsWithStringEncoding } from 'node:child_process';
-import { access, mkdtemp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import {
+  access,
+  mkdtemp,
+  mkdir,
+  readFile,
+  readdir,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -51,7 +59,9 @@ async function readPackageMetadata(): Promise<PackageMetadata> {
   const source = await readFile(path.join(root, 'package.json'), 'utf8');
   const parsed = JSON.parse(source) as Partial<PackageMetadata>;
   if (!parsed.name || !parsed.version) {
-    throw new Error('package.json must define name and version for package smoke tests.');
+    throw new Error(
+      'package.json must define name and version for package smoke tests.',
+    );
   }
   return { name: parsed.name, version: parsed.version };
 }
@@ -211,7 +221,9 @@ function verifyInstalledCli(consumerDirectory: string, expectedVersion: string):
     ),
   ) as unknown[];
   if (rules.length !== 24) {
-    throw new Error(`Installed CLI returned ${rules.length} built-in rules instead of 24.`);
+    throw new Error(
+      `Installed CLI returned ${rules.length} built-in rules instead of 24.`,
+    );
   }
 }
 
@@ -221,7 +233,10 @@ function verifyScanCommand(consumerDirectory: string): void {
     ['exec', 'skillbench', 'scan', 'SKILL.md', '--format', 'json', '--no-color'],
     consumerDirectory,
   );
-  const report = JSON.parse(output) as { schemaVersion?: string; tool?: { name?: string } };
+  const report = JSON.parse(output) as {
+    schemaVersion?: string;
+    tool?: { name?: string };
+  };
   if (report.schemaVersion !== '0.1' || report.tool?.name !== 'skillbench') {
     throw new Error('Installed CLI scan did not return the expected report contract.');
   }
