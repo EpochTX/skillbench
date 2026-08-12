@@ -31,6 +31,11 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - if: failure() && matrix.node == 20
+        run: |
+          pnpm eslint tests/unit/public-api.test.ts tests/types/public-api-contract.ts
+          pnpm prettier --write README.md README_EN.md CHANGELOG.md docs/API.md tests/unit/public-api.test.ts tests/types/public-api-contract.ts
+          git diff -- README.md README_EN.md CHANGELOG.md docs/API.md tests/unit/public-api.test.ts tests/types/public-api-contract.ts
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
