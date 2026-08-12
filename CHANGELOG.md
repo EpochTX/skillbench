@@ -6,6 +6,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Added
 
+- `docs/API.md` defines the package-root TypeScript compatibility contract, including supported runtime exports, public types, safe-fix semantics, benchmark behavior, and post-1.0 SemVer expectations.
+- Exact runtime-export tests and a compile-time public-type contract now make accidental root API additions/removals fail CI.
 - `skillbench benchmark <manifest>` measures case-by-rule precision, recall, built-in-rule coverage, false positives, and false negatives from a labeled YAML corpus.
 - The maintained repository corpus now combines six full-stack fixtures with deterministic generated threshold fixtures: 17 labeled cases cover all 24 built-in rules at strict 100% precision, 100% recall, and 100% rule-coverage thresholds.
 - Generated benchmark inputs are reproducible and isolated from local SkillBench configuration; expected rule labels remain human-authored and are never regenerated from analyzer output.
@@ -19,6 +21,8 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
+- Chinese and English READMEs now document the real safe-write behavior, 24/24 rule benchmark gate, public API contract, 1.0 release criteria, and current hardening roadmap.
+- The packaged file allowlist now includes `docs/API.md` so npm consumers receive the supported API contract.
 - Source verification and pre-publication checks now fail when the repository rule corpus misses any declared precision, recall, or coverage threshold.
 - Benchmark machine reports keep manifest-relative portable paths rather than runner-specific absolute working-directory paths.
 - Built CLI smoke tests regenerate and rerun the full labeled benchmark on Node.js and both supported desktop runner platforms.
@@ -38,6 +42,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Fixed
 
+- The README copy-paste source CI examples now invoke the required `scan` subcommand instead of passing the target directly to the command root.
 - Stable issue fingerprints no longer change when a rule severity is overridden by configuration.
 - SARIF artifact URIs encode reserved filename characters such as `#` and `?` as path data.
 - The terminal demo no longer advertises the unpublished `npx skillbench-ai` command.

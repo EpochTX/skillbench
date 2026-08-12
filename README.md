@@ -32,6 +32,8 @@ SkillBench 为这类文件提供确定性的本地静态分析：
 - **Token 效率分析**：估算 Token、重复 Token、潜在压缩空间和指令密度。
 - **跨 Agent 兼容性**：分析同一套指令在 Codex、Claude Code、Cursor、Gemini CLI、GitHub Copilot 中的可用程度。
 - **可解释评分**：每次扣分都有规则 ID、严重级别和依据，不依赖隐藏模型判断。
+- **安全修复**：默认只预览；显式 `--write` 目前只执行可证明确定、幂等的低风险修复。
+- **规则 Benchmark**：用人工标签语料量化 TP/FP/FN、Precision、Recall 与规则覆盖率，并作为发布门禁。
 - **回归检测**：对比两个版本，区分新增、已解决和未变化的问题。
 - **CI / SARIF**：支持 JSON、SARIF 2.1.0、GitHub Actions 原生注解和稳定退出码。
 
@@ -90,7 +92,9 @@ GEMINI.md
 | `skillbench compare <before> <after>` | 对比两个版本的评分、Token、问题与兼容性变化 |
 | `skillbench diff <before> <after>`    | `compare` 的别名                            |
 | `skillbench rules [ruleId]`           | 列出全部规则，或查看某条规则详情            |
-| `skillbench fix [target] --dry-run`   | 输出修复建议；v0.2 不修改目标文件           |
+| `skillbench fix [target]`             | 默认只读预览安全修复与人工复核建议          |
+| `skillbench fix [target] --write`     | 显式应用确定性的 SAFE 修复                  |
+| `skillbench benchmark <manifest>`     | 运行人工标签的规则精度/覆盖率 Benchmark     |
 | `skillbench init [directory]`         | 创建 `.skillbench.yml`                      |
 | `skillbench badge [target]`           | 生成 shields.io Markdown Badge              |
 
@@ -104,6 +108,8 @@ json
 sarif
 github
 ```
+
+`benchmark` 支持 `terminal` 与 `json`。
 
 常用示例：
 
@@ -119,17 +125,26 @@ skillbench scan . --format sarif --output skillbench.sarif
 
 # 回归检查：只让新增问题影响 CI
 skillbench compare ./baseline ./candidate --ci --fail-on error
+
+# 只预览，不写文件
+skillbench fix .
+
+# 显式写入，并在每个被修改文件旁创建不覆盖的备份
+skillbench fix . --write --backup
+
+# 人工标签规则语料门禁
+skillbench benchmark tests/corpus/rules.yml --ci
 ```
 
 稳定退出码：
 
-| 退出码 | 含义                            |
-| -----: | ------------------------------- |
-|    `0` | 分析完成，未达到 CI 失败阈值    |
-|    `1` | `--ci` 指定的严重级别阈值被触发 |
-|    `2` | 参数、配置、目标或解析错误      |
+| 退出码 | 含义                                 |
+| -----: | ------------------------------------ |
+|    `0` | 命令完成，未达到对应 CI 失败条件     |
+|    `1` | 分析/对比阈值或 Benchmark 阈值被触发 |
+|    `2` | 参数、配置、目标、解析或运行错误     |
 
-`--fail-on` 支持 `warning`、`error`、`critical`。
+分析与对比命令的 `--fail-on` 支持 `warning`、`error`、`critical`。
 
 ## 评分体系
 
@@ -186,6 +201,40 @@ skillbench rules SB102
 ```
 
 规则可以在 `.skillbench.yml` 中单独关闭或覆盖严重级别。
+
+## 规则 Benchmark
+
+仓库维护一份**人工标签**的 case × rule 语料。标签不会从当前分析结果自动生成，因此规则改动如果产生新的误报或漏报，会直接显示为 FP/FN，而不是自动“更新快照”。
+
+```bash
+pnpm benchmark:rules
+# 或
+skillbench benchmark tests/corpus/rules.yml --ci
+```
+
+当前发布语料由 6 个完整真实 fixture 与确定性生成的阈值 fixture 组成，共 **17 个 case，覆盖 24/24 条内置规则**；CI 门槛固定为：
+
+- Precision：`100%`
+- Recall：`100%`
+- Rule coverage：`100%`
+- 当前基线：`TP 24 · FP 0 · FN 0`
+
+Benchmark 使用推荐默认配置运行，不继承开发者目录中的 `.skillbench.yml`，机器报告只保留可复现的 manifest 相对路径。
+
+## 安全自动修复
+
+`skillbench fix` **默认永远只读**。只有显式指定 `--write` 才会修改文件；当前自动 writer 故意只支持 `SB003` 的**完全相同纯文本段落**删除。近似重复、列表、表格、代码块、结构化 Markdown 与安全类 remediation 仍然只给人工复核建议。
+
+写入路径包含额外保护：
+
+- plan 保存源文件 SHA-256，并在写入前再次校验，拒绝 stale plan；
+- 目标变成符号链接或非普通文件时拒绝写入；
+- 替换内容先写入同目录临时文件，再以 rename-based replacement 提交；
+- `--backup` 会预检全部 `.skillbench.bak` 目标，绝不覆盖已有备份；
+- 保留 CRLF/LF 与相关权限位；
+- 多文件中途失败会尝试回滚已提交文件，回滚不完整时保留恢复材料。
+
+这是**逐文件原子替换 + 多文件 best-effort rollback**，并不声称提供跨文件系统事务。
 
 ## Token 分析
 
@@ -287,10 +336,10 @@ jobs:
           pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
           pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Check agent instructions
-        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
-仓库自身的 `.github/workflows/ci.yml` 会在 Ubuntu 上验证 Node.js 20 和 22，并在 macOS、Windows 上执行跨平台测试和构建。
+仓库自身的 `.github/workflows/ci.yml` 会在 Ubuntu 上验证 Node.js 20 和 22，并在 macOS、Windows 上执行跨平台测试、构建与 production CLI Benchmark。
 
 ## 配置文件
 
@@ -353,21 +402,22 @@ SkillBench 默认采用保守的静态分析边界：
 - 命中的密钥或凭据证据在输出前统一脱敏。
 - 防御性示例与直接执行指令会在可确定的上下文中使用不同严重级别。
 - 默认不会把源文本发送到任何网络服务。
+- 自动修复默认只预览；写入必须显式 `--write`，且当前 writer 范围故意保持极窄。
 
 安全问题请按照 [SECURITY.md](SECURITY.md) 中的流程私下报告，请勿提交真实凭据。
 
 ## 架构
 
-| 模块         | 职责                                       | 扩展方向          |
-| ------------ | ------------------------------------------ | ----------------- |
-| `parser/`    | Frontmatter、段落、章节与源码位置解析      | 新文本格式        |
-| `rules/`     | 按分类组织的确定性规则                     | 新规则            |
-| `core/`      | 分析编排、Token、规则引擎、评分与回归比较  | 新分析器/评分配置 |
-| `adapters/`  | Agent 原生入口检测与兼容性推理             | 新 Agent          |
-| `reporters/` | Terminal、JSON、SARIF、GitHub 注解与 Badge | 新报告格式        |
-| `cli/`       | 命令、参数、CI 策略与用户错误              | 新工作流          |
+| 模块         | 职责                                                 | 扩展方向          |
+| ------------ | ---------------------------------------------------- | ----------------- |
+| `parser/`    | Frontmatter、段落、章节与源码位置解析                | 新文本格式        |
+| `rules/`     | 按分类组织的确定性规则                               | 新规则            |
+| `core/`      | 分析、Token、评分、对比、安全修复与 Benchmark 编排   | 新分析器/评分配置 |
+| `adapters/`  | Agent 原生入口检测与兼容性推理                       | 新 Agent          |
+| `reporters/` | Terminal、JSON、SARIF、GitHub 注解、Badge、Benchmark | 新报告格式        |
+| `cli/`       | 命令、参数、CI 策略与用户错误                        | 新工作流          |
 
-公共 TypeScript API 从 `src/index.ts` 导出。
+公共 TypeScript API 从包根入口导出；稳定范围与兼容策略见 [docs/API.md](docs/API.md)。
 
 ## 项目结构
 
@@ -381,6 +431,8 @@ skillbench/
 │   ├── reporters/
 │   └── rules/
 ├── tests/
+│   ├── corpus/
+│   └── fixtures/
 ├── examples/
 ├── docs/
 ├── assets/
@@ -397,7 +449,14 @@ pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm benchmark:rules
 pnpm build
+```
+
+完整发布前门禁：
+
+```bash
+pnpm release:check
 ```
 
 技术栈：TypeScript、Commander、Zod、YAML、Vitest、ESLint、Prettier、tsup。
@@ -406,10 +465,11 @@ pnpm build
 
 - **v0.1**：静态分析、安全规则、Token 分析、五 Agent 兼容性、CLI、JSON、CI、Badge。
 - **v0.2**：SARIF 2.1.0、GitHub Actions 注解、`compare` / `diff`、规则查询、报告文件输出。
-- **v0.3**：可选安全自动修复、沙箱执行 Benchmark、可选 LLM Judge、Skill 回归测试。
-- **v0.4**：SkillBench Registry、公开排行榜、可分享的托管报告。
+- **1.0 hardening（进行中）**：确定性 safe-fix writer、事务式写入保护、24/24 人工标签规则 Benchmark、公共 API 契约、性能基线、依赖安全门禁、npm trusted publishing 与最终发布验证。
+- **1.x**：在兼容承诺内继续增加确定性规则、Agent Adapter、可证明安全的 fixer 与分析能力。
+- **未来探索**：显式沙箱中的执行型 Skill Benchmark、可选 LLM Judge、Registry/公开排行榜；这些不会作为 1.0 稳定性承诺的前置噱头。
 
-计划中的命令包括 `skillbench test` 和语料级 `benchmark`。真实执行型 Benchmark 只会在显式沙箱中运行，并衡量任务成功率、Token、耗时、工具调用、文件变化和测试结果。
+1.0 的可验收发布条件见 [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md)。版本号不会在条件未满足时提前改成 `1.0.0`。
 
 ## Contributing
 
@@ -419,6 +479,7 @@ pnpm build
 pnpm lint
 pnpm typecheck
 pnpm test
+pnpm benchmark:rules
 pnpm build
 ```
 

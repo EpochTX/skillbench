@@ -23,7 +23,8 @@
     "SECURITY.md",
     "LICENSE",
     "assets/logo.svg",
-    "docs/demo.svg"
+    "docs/demo.svg",
+    "docs/API.md"
   ],
   "engines": {
     "node": ">=20"
