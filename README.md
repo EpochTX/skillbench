@@ -19,15 +19,39 @@
 
 ![SkillBench terminal demo](docs/demo.svg)
 
+> **当前发布状态（2026-08-12）：** `1.0.0` 源码/包候选已经通过全部工程门禁并合并，但首次 npm 发布在最后一步因 npm 维护者认证缺失返回 `ENEEDAUTH`。因此目前**没有** `v1.0.0` tag，也没有 GitHub Release；在它们出现前，请使用已验证源码提交 `365533eb2feb60467336ce1faca2df96a4ad1d78`，不要假定 npm/npx 命令已经可用。详见 [1.0 发布状态](docs/1.0-PUBLICATION-STATUS.md)。
+
 SkillBench 1.0 将 Agent Skill、`AGENTS.md`、`CLAUDE.md`、Cursor Rules 等指令文件纳入可重复的工程质量体系：静态检查、安全规则、Token 效率、跨 Agent 兼容性、回归对比、SARIF、CI 门禁、可审计安全修复和人工标签规则 Benchmark。
 
-> **发布完整性保证：** `v1.0.0` 只会在 `skillbench-ai@1.0.0` 已成功发布并从 npm Registry 验证后创建。如果你正在查看尚未打 tag 的 release candidate，请使用下方“从源码运行”方式。
+> **发布完整性保证：** `v1.0.0` 只会在 `skillbench-ai@1.0.0` 已成功发布并从 npm Registry 验证后创建。发布工作流不会用“先打 tag、后发现 npm 失败”的半发布状态冒充正式版本。
 
 ## 快速开始
 
-### npm / npx
+### 当前：从已验证源码运行
 
-无需全局安装：
+```bash
+git clone https://github.com/EpochTX/skillbench.git
+cd skillbench
+git checkout --detach 365533eb2feb60467336ce1faca2df96a4ad1d78
+
+corepack enable
+pnpm install --frozen-lockfile
+pnpm build
+
+node dist/cli.js scan SKILL.md
+```
+
+开发当前 `main`：
+
+```bash
+pnpm dev -- scan SKILL.md
+```
+
+要求 Node.js 20 或更高版本，支持 Linux、macOS 与 Windows。
+
+### npm / npx（Registry 发布完成后启用）
+
+只有当仓库已经出现 `v1.0.0` 且 npm Registry 可查询到 `skillbench-ai@1.0.0` 后，下面命令才代表正式发布版本：
 
 ```bash
 npx --yes skillbench-ai@1.0.0 scan SKILL.md
@@ -41,27 +65,6 @@ skillbench scan SKILL.md
 ```
 
 包名是 `skillbench-ai`，安装后的可执行命令是 `skillbench`。
-
-### 从源码运行
-
-```bash
-git clone https://github.com/EpochTX/skillbench.git
-cd skillbench
-
-corepack enable
-pnpm install --frozen-lockfile
-pnpm build
-
-node dist/cli.js scan SKILL.md
-```
-
-开发模式：
-
-```bash
-pnpm dev -- scan SKILL.md
-```
-
-要求 Node.js 20 或更高版本，支持 Linux、macOS 与 Windows。
 
 ## 为什么需要 SkillBench？
 
@@ -271,7 +274,7 @@ SARIF 输出遵循 SARIF 2.1.0，并包含稳定指纹、规则元数据、位�
 
 ## GitHub Actions
 
-1.0 发布后可直接固定 npm 版本运行：
+在 npm 首发完成前，CI 示例固定到已验证的 1.0.0 源码提交：
 
 ```yaml
 name: SkillBench
@@ -291,19 +294,28 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          version: 10.34.5
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           package-manager-cache: false
+      - name: Install validated SkillBench 1.0.0 candidate
+        run: |
+          git clone --no-checkout https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git -C "$RUNNER_TEMP/skillbench" checkout --detach 365533eb2feb60467336ce1faca2df96a4ad1d78
+          pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+          pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Check agent instructions
-        run: npx --yes skillbench-ai@1.0.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 完整 SARIF / Code Scanning 示例见 [`examples/github-actions/skillbench-sarif.yml`](examples/github-actions/skillbench-sarif.yml)。
 
 ## 1.0 发布与供应链门禁
 
-1.0 release candidate 必须在同一提交上通过：
+1.0 release candidate 已在同一提交上通过：
 
 - **CI**：Node 20/22、macOS、Windows，含 production `dist/cli.js` 契约；
 - **Package Integrity**：真实 `.tgz` 在独立 consumer 中安装、ESM import、d.ts 编译、bin、scan；
@@ -311,7 +323,7 @@ jobs:
 - **Performance Guard**：确定性 120 文件仓库规模测试；
 - **Publish preflight**：Node 24 + npm 11.18.0 再跑完整 `pnpm release:check`。
 
-发布流程先验证 npm Registry，再创建 `v1.0.0` 与 GitHub Release；不会用“先打 tag、后发现 npm 发布失败”的半发布状态冒充正式版本。完整标准见 [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md)，维护者流程见 [RELEASING.md](RELEASING.md)。
+当前剩余步骤仅是 npm 维护者认证。显式 Publish bootstrap 会重新验证上述 release commit，先完成 npm 发布与 Registry 核验，再创建 `v1.0.0` 与 GitHub Release。完整标准见 [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md)，当前状态见 [docs/1.0-PUBLICATION-STATUS.md](docs/1.0-PUBLICATION-STATUS.md)，维护者流程见 [RELEASING.md](RELEASING.md)。
 
 ## 开发
 
@@ -339,8 +351,8 @@ pnpm release:check
 
 - **v0.1**：静态分析、安全规则、Token 分析、五 Agent 兼容性、CLI、JSON、CI、Badge。
 - **v0.2**：SARIF 2.1.0、GitHub Actions annotations、`compare` / `diff`、规则查询、报告文件输出。
-- **v1.0**：稳定 CLI/API 契约、安全 writer、24/24 人工标签 Benchmark、真实包安装门禁、性能基线、生产依赖审计与可验证发布链。
-- **1.x**：在兼容承诺内继续增加确定性规则、Agent Adapter、可证明安全的 fixer 与分析能力。
+- **v1.0**：工程候选已完成——稳定 CLI/API 契约、安全 writer、24/24 人工标签 Benchmark、真实包安装门禁、性能基线、生产依赖审计与可验证发布链；公开 npm 首发仅待维护者认证。
+- **1.x**：正式发布后在兼容承诺内继续增加确定性规则、Agent Adapter、可证明安全的 fixer 与分析能力。
 - **未来探索**：显式沙箱中的执行型 Skill Benchmark、可选 LLM Judge、Registry/公开排行榜；这些不会削弱 1.x 的确定性默认路径。
 
 ## Contributing
