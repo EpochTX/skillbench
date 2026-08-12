@@ -1,6 +1,6 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { constants as fsConstants } from 'node:fs';
-import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { access, copyFile, lstat, open, readFile, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import { loadConfig } from '../config/loader.js';
@@ -48,6 +48,14 @@ export interface ApplyFixResult {
   backups: string[];
 }
 
+interface PreparedFile {
+  file: FileFixPlan;
+  original: string;
+  output: string;
+  mode: number;
+  tempPath?: string;
+}
+
 export class FixConflictError extends Error {
   override readonly name = 'FixConflictError';
 }
@@ -85,43 +93,65 @@ export async function applyFixPlan(
   plan: FixPlan,
   options: ApplyFixOptions = {},
 ): Promise<ApplyFixResult> {
-  const prepared = await Promise.all(
-    plan.files.map(async (file) => {
-      const raw = await readFile(file.filePath, 'utf8');
-      if (hash(raw) !== file.sourceHash) {
-        throw new FixConflictError(
-          `Refusing to modify ${file.relativePath}: file changed after fixes were planned.`,
-        );
-      }
-      const lines = raw.split(/\r\n|\n|\r/u);
-      if (lines.length !== file.sourceLineCount) {
-        throw new FixConflictError(
-          `Refusing to modify ${file.relativePath}: line structure changed after fixes were planned.`,
-        );
-      }
-      const endings = raw.match(/\r\n|\n|\r/gu) ?? [];
-      const removed = new Set(file.removeLines.map((line) => line - 1));
-      let output = '';
-      for (let index = 0; index < lines.length; index += 1) {
-        if (removed.has(index)) continue;
-        output += lines[index] ?? '';
-        if (index < endings.length) output += endings[index] ?? '';
-      }
-      return { file, output };
-    }),
-  );
+  const prepared = await Promise.all(plan.files.map(prepareFile));
+  const backups = options.backup
+    ? prepared.map((entry) => `${entry.file.filePath}.skillbench.bak`)
+    : [];
 
-  const backups: string[] = [];
-  if (options.backup) {
+  if (options.backup) await assertBackupPathsAvailable(backups);
+
+  const staged: PreparedFile[] = [];
+  const createdBackups: string[] = [];
+  const committed: PreparedFile[] = [];
+  try {
     for (const entry of prepared) {
-      const backupPath = `${entry.file.filePath}.skillbench.bak`;
-      await copyFile(entry.file.filePath, backupPath, fsConstants.COPYFILE_EXCL);
-      backups.push(backupPath);
+      entry.tempPath = await stageReplacement(
+        entry.file.filePath,
+        entry.output,
+        entry.mode,
+      );
+      staged.push(entry);
     }
-  }
 
-  for (const entry of prepared) {
-    await writeFile(entry.file.filePath, entry.output, 'utf8');
+    await assertSourcesUnchanged(prepared);
+
+    if (options.backup) {
+      for (let index = 0; index < prepared.length; index += 1) {
+        const backupPath = backups[index];
+        if (!backupPath) continue;
+        await copyFile(
+          prepared[index]?.file.filePath ?? '',
+          backupPath,
+          fsConstants.COPYFILE_EXCL,
+        );
+        createdBackups.push(backupPath);
+      }
+    }
+
+    for (const entry of prepared) {
+      if (!entry.tempPath)
+        throw new Error(`Missing staged replacement for ${entry.file.relativePath}`);
+      await rename(entry.tempPath, entry.file.filePath);
+      delete entry.tempPath;
+      committed.push(entry);
+    }
+  } catch (error) {
+    const rollbackFailures = await rollbackCommittedFiles(committed);
+    await cleanupTemporaryFiles(staged);
+    if (rollbackFailures.length === 0) {
+      await cleanupCreatedBackups(createdBackups);
+    }
+    if (rollbackFailures.length > 0) {
+      const recovery =
+        createdBackups.length > 0
+          ? ` Recovery backups were kept: ${createdBackups.join(', ')}.`
+          : '';
+      throw new Error(
+        `Safe-fix write failed and rollback was incomplete for: ${rollbackFailures.join(', ')}.${recovery}`,
+        { cause: error },
+      );
+    }
+    throw error;
   }
 
   return {
@@ -129,6 +159,135 @@ export async function applyFixPlan(
     fixesApplied: plan.fixes.length,
     backups,
   };
+}
+
+async function prepareFile(file: FileFixPlan): Promise<PreparedFile> {
+  const info = await lstat(file.filePath);
+  if (!info.isFile() || info.isSymbolicLink()) {
+    throw new FixConflictError(
+      `Refusing to modify ${file.relativePath}: target is no longer a regular file.`,
+    );
+  }
+
+  const raw = await readFile(file.filePath, 'utf8');
+  assertPlannedSource(file, raw);
+  const lines = raw.split(/\r\n|\n|\r/u);
+  const endings = raw.match(/\r\n|\n|\r/gu) ?? [];
+  const removed = new Set(file.removeLines.map((line) => line - 1));
+  let output = '';
+  for (let index = 0; index < lines.length; index += 1) {
+    if (removed.has(index)) continue;
+    output += lines[index] ?? '';
+    if (index < endings.length) output += endings[index] ?? '';
+  }
+
+  return {
+    file,
+    original: raw,
+    output,
+    mode: info.mode & 0o7777,
+  };
+}
+
+function assertPlannedSource(file: FileFixPlan, raw: string): void {
+  if (hash(raw) !== file.sourceHash) {
+    throw new FixConflictError(
+      `Refusing to modify ${file.relativePath}: file changed after fixes were planned.`,
+    );
+  }
+  const lineCount = raw.split(/\r\n|\n|\r/u).length;
+  if (lineCount !== file.sourceLineCount) {
+    throw new FixConflictError(
+      `Refusing to modify ${file.relativePath}: line structure changed after fixes were planned.`,
+    );
+  }
+}
+
+async function assertSourcesUnchanged(
+  prepared: readonly PreparedFile[],
+): Promise<void> {
+  for (const entry of prepared) {
+    const info = await lstat(entry.file.filePath);
+    if (!info.isFile() || info.isSymbolicLink()) {
+      throw new FixConflictError(
+        `Refusing to modify ${entry.file.relativePath}: target changed type after fixes were planned.`,
+      );
+    }
+    const raw = await readFile(entry.file.filePath, 'utf8');
+    assertPlannedSource(entry.file, raw);
+  }
+}
+
+async function assertBackupPathsAvailable(backups: readonly string[]): Promise<void> {
+  for (const backupPath of backups) {
+    try {
+      await access(backupPath, fsConstants.F_OK);
+    } catch {
+      continue;
+    }
+    throw new FixConflictError(
+      `Refusing to write backups: ${backupPath} already exists. Remove or rename it first.`,
+    );
+  }
+}
+
+async function stageReplacement(
+  filePath: string,
+  content: string,
+  mode: number,
+): Promise<string> {
+  const directory = path.dirname(filePath);
+  const tempPath = path.join(
+    directory,
+    `.${path.basename(filePath)}.skillbench-${process.pid}-${randomUUID()}.tmp`,
+  );
+  const handle = await open(tempPath, 'wx', mode);
+  try {
+    await handle.writeFile(content, 'utf8');
+    await handle.chmod(mode);
+    await handle.sync();
+  } catch (error) {
+    await handle.close().catch(() => undefined);
+    await rm(tempPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
+  await handle.close();
+  return tempPath;
+}
+
+async function rollbackCommittedFiles(
+  committed: readonly PreparedFile[],
+): Promise<string[]> {
+  const failures: string[] = [];
+  for (const entry of [...committed].reverse()) {
+    try {
+      const rollbackPath = await stageReplacement(
+        entry.file.filePath,
+        entry.original,
+        entry.mode,
+      );
+      await rename(rollbackPath, entry.file.filePath);
+    } catch {
+      failures.push(entry.file.relativePath);
+    }
+  }
+  return failures;
+}
+
+async function cleanupTemporaryFiles(entries: readonly PreparedFile[]): Promise<void> {
+  await Promise.all(
+    entries.map(async (entry) => {
+      if (!entry.tempPath) return;
+      await rm(entry.tempPath, { force: true }).catch(() => undefined);
+      delete entry.tempPath;
+    }),
+  );
+}
+
+async function cleanupCreatedBackups(backups: readonly string[]): Promise<void> {
+  await Promise.all(
+    backups.map((backup) => rm(backup, { force: true }).catch(() => undefined)),
+  );
 }
 
 function planDocumentFixes(document: ParsedDocument): {
