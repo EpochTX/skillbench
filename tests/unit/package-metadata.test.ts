@@ -23,6 +23,7 @@ describe('package metadata', () => {
       'SECURITY.md',
       'assets/logo.svg',
       'docs/demo.svg',
+      'docs/API.md',
     ];
 
     expect(packageJson.files).toEqual(expect.arrayContaining(requiredFiles));
@@ -38,7 +39,12 @@ describe('package metadata', () => {
     expect(packageJson.repository.url).toBe(
       'git+https://github.com/EpochTX/skillbench.git',
     );
-    expect(packageJson.scripts['test:dist']).toContain('dist/cli.js');
+    expect(packageJson.scripts['test:dist']).toContain('scripts/verify-built-cli.ts');
+    const builtCliVerifier = readFileSync(
+      path.join(root, 'scripts/verify-built-cli.ts'),
+      'utf8',
+    );
+    expect(builtCliVerifier).toContain("path.join(root, 'dist', 'cli.js')");
     expect(packageJson.scripts.prepublishOnly).toContain('pnpm test');
   });
 

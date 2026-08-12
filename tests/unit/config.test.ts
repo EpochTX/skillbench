@@ -68,6 +68,15 @@ describe('configuration', () => {
     await expect(initializeConfig(directory)).rejects.toThrow('already exists');
   });
 
+  it('creates missing nested init directories including Unicode and spaces', async () => {
+    const parent = await temporaryDirectory();
+    const directory = path.join(parent, 'Agent 指令 空格', 'nested repo');
+    const configPath = await initializeConfig(directory);
+
+    expect(configPath).toBe(path.join(directory, '.skillbench.yml'));
+    expect(await readFile(configPath, 'utf8')).toContain('extends: recommended');
+  });
+
   it('finds config inside a directory whose name contains a dot', async () => {
     const parent = await temporaryDirectory();
     const directory = path.join(parent, 'repo.v1');

@@ -22,6 +22,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
+- Built CLI verification now exercises the documented production command surface after every build, including Unicode and spaced paths, CRLF input, `--output`, `--no-color`, JSON stdout purity, safe fixes, regression exits, initialization, badges, and the labeled rule benchmark.
 - Chinese and English READMEs now document the real safe-write behavior, 24/24 rule benchmark gate, public API contract, 1.0 release criteria, and current hardening roadmap.
 - The packaged file allowlist now includes `docs/API.md` so npm consumers receive the supported API contract.
 - Source verification and pre-publication checks now fail when the repository rule corpus misses any declared precision, recall, or coverage threshold.
@@ -43,6 +44,7 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Fixed
 
+- `skillbench init <directory>` now creates missing nested directories, including paths with Unicode characters and spaces, before writing `.skillbench.yml`.
 - The README copy-paste source CI examples now invoke the required `scan` subcommand instead of passing the target directly to the command root.
 - Stable issue fingerprints no longer change when a rule severity is overridden by configuration.
 - SARIF artifact URIs encode reserved filename characters such as `#` and `?` as path data.

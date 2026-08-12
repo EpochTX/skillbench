@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { access, writeFile } from 'node:fs/promises';
+import { access, mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 export const defaultConfigSource = `# SkillBench configuration
@@ -24,7 +24,11 @@ ignore:
 `;
 
 export async function initializeConfig(directory = process.cwd()): Promise<string> {
-  const configPath = path.resolve(directory, '.skillbench.yml');
+  const resolvedDirectory = path.resolve(directory);
+  const configPath = path.join(resolvedDirectory, '.skillbench.yml');
+
+  await mkdir(resolvedDirectory, { recursive: true });
+
   try {
     await access(configPath, constants.F_OK);
     throw new Error(`Config already exists: ${configPath}`);
