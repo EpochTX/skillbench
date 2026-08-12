@@ -14,6 +14,9 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ### Changed
 
+- Safe-fix writes are staged into same-directory temporary files and committed with rename-based replacement instead of direct truncating writes.
+- Safe-fix apply revalidates all planned sources before commit, preflights every backup destination, preserves permission bits, and attempts rollback if a later file replacement fails.
+- Temporary safe-fix files are cleaned after successful writes and on recoverable failures; recovery backups are retained when rollback cannot complete.
 - CI now smoke-tests the built `dist/cli.js` executable on Node.js 20, Node.js 22, macOS, and Windows.
 - Publishable package metadata now includes README-linked documentation and SVG assets.
 - Release verification includes a dry-run package check and pre-publish quality gates.
