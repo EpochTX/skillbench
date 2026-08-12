@@ -11,13 +11,15 @@ on:
       - README.md
       - README_EN.md
       - RELEASING.md
+      - docs/1.0-PUBLICATION-STATUS.md
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Exact validated SkillBench 1.0.0 commit to publish
+        required: true
+        default: 365533eb2feb60467336ce1faca2df96a4ad1d78
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - package.json
-      - src/version.ts
-      - CHANGELOG.md
 
 permissions:
   contents: read
@@ -48,14 +50,26 @@ jobs:
       - run: pnpm release:check
 
   bootstrap-1-0:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     permissions:
       contents: write
       id-token: write
+    env:
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      EXPECTED_RELEASE_SHA: 365533eb2feb60467336ce1faca2df96a4ad1d78
     steps:
+      - name: Require the validated 1.0.0 candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$RELEASE_SHA" != "$EXPECTED_RELEASE_SHA" ]]; then
+            echo "Refusing to bootstrap 1.0.0 from unvalidated commit $RELEASE_SHA" >&2
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.release_sha }}
           persist-credentials: false
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -74,14 +88,12 @@ jobs:
           version="$(node -p "require('./package.json').version")"
           package="$(node -p "require('./package.json').name")"
           expected_repo='git+https://github.com/EpochTX/skillbench.git'
+          if [[ "$version" != '1.0.0' ]]; then
+            echo "Validated bootstrap commit unexpectedly reports version $version" >&2
+            exit 1
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "package=$package" >> "$GITHUB_OUTPUT"
-          if [[ "$version" != '1.0.0' ]]; then
-            echo 'eligible=false' >> "$GITHUB_OUTPUT"
-            echo 'already_published=false' >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo 'eligible=true' >> "$GITHUB_OUTPUT"
           if npm view "$package@$version" version --json >/dev/null 2>&1; then
             existing_repo="$(npm view "$package@$version" repository.url --json)"
             if [[ "$existing_repo" != "\"$expected_repo\"" ]]; then
@@ -93,12 +105,11 @@ jobs:
             echo 'already_published=false' >> "$GITHUB_OUTPUT"
           fi
       - name: Publish 1.0.0 to npm
-        if: steps.release.outputs.eligible == 'true' && steps.release.outputs.already_published != 'true'
+        if: steps.release.outputs.already_published != 'true'
         run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Verify published package
-        if: steps.release.outputs.eligible == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -114,7 +125,6 @@ jobs:
           [[ "$(npm view "$package@$version" version --json)" == "\"$version\"" ]]
           [[ "$(npm view "$package@$version" repository.url --json)" == "$expected_repo" ]]
       - name: Create v1.0.0 tag and GitHub release
-        if: steps.release.outputs.eligible == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -123,15 +133,15 @@ jobs:
           version='${{ steps.release.outputs.version }}'
           tag="v$version"
           existing_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.sha' 2>/dev/null || true)"
-          if [[ -n "$existing_sha" && "$existing_sha" != "$GITHUB_SHA" ]]; then
-            echo "$tag already points to $existing_sha instead of $GITHUB_SHA" >&2
+          if [[ -n "$existing_sha" && "$existing_sha" != "$RELEASE_SHA" ]]; then
+            echo "$tag already points to $existing_sha instead of $RELEASE_SHA" >&2
             exit 1
           fi
           if [[ -z "$existing_sha" ]]; then
-            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$GITHUB_SHA" >/dev/null
+            gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f "ref=refs/tags/$tag" -f "sha=$RELEASE_SHA" >/dev/null
           fi
           if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --verify-tag --target "$GITHUB_SHA" --title "SkillBench v$version" --generate-notes
+            gh release create "$tag" --verify-tag --target "$RELEASE_SHA" --title "SkillBench v$version" --generate-notes
           fi
 
   publish-tag:
