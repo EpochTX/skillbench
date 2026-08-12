@@ -31,6 +31,17 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      - if: failure() && matrix.node == 20
+        run: |
+          pnpm prettier --write tests/unit/security-context.test.ts
+          mkdir -p .skillbench-output/security-format
+          cp tests/unit/security-context.test.ts .skillbench-output/security-format/
+      - if: failure() && matrix.node == 20
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: security-context-prettier
+          path: .skillbench-output/security-format
+          if-no-files-found: error
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm benchmark:rules
