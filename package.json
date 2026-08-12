@@ -36,12 +36,14 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:dist": "node dist/cli.js --version && node dist/cli.js rules --format json",
+    "benchmark:fixtures": "tsx tests/corpus/generate-fixtures.ts",
+    "benchmark:rules": "pnpm benchmark:fixtures && tsx src/cli.ts benchmark tests/corpus/rules.yml --ci --no-color",
+    "test:dist": "node dist/cli.js --version && node dist/cli.js rules --format json && pnpm benchmark:fixtures && node dist/cli.js benchmark tests/corpus/rules.yml --ci --no-color",
     "typecheck": "tsc --noEmit",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:dist",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules && pnpm build && pnpm test:dist",
     "pack:check": "pnpm pack --dry-run --json",
     "release:check": "pnpm verify && pnpm pack:check",
-    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test",
+    "prepublishOnly": "pnpm lint && pnpm typecheck && pnpm test && pnpm benchmark:rules",
     "prepack": "pnpm build && pnpm test:dist"
   },
   "keywords": [
