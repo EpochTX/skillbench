@@ -30,26 +30,40 @@ pnpm install --frozen-lockfile
 pnpm release:check
 ```
 
-`pnpm release:check` runs lint, TypeScript typechecking, the full Vitest suite, the production build, a smoke test against `dist/cli.js`, and an npm package dry run.
+`pnpm release:check` runs lint, strict TypeScript typechecking, the full Vitest suite, the 24/24 labeled rule benchmark, the production build and built-CLI contract, a high/critical production-dependency audit, a real packed-package consumer installation, and the npm package dry run.
 
-## Inspect the package
+## Inspect and install the packed package
 
-Review the `pnpm pack:check` output before publication. The package must contain the production build, license, both READMEs, security and contribution documentation, and README-linked SVG assets. It must not contain tests, fixtures, coverage, temporary archives, credentials, or local output.
+`pnpm run package:smoke` creates the actual `.tgz`, installs it into an OS temporary consumer directory outside the repository workspace, and validates what a consumer receives:
 
-Confirm the built executable directly:
+- package-root ESM imports;
+- published TypeScript declarations through a strict consumer compile;
+- the installed `skillbench` executable and version;
+- the machine-readable rules contract and a real `scan` command;
+- required runtime, API documentation, README, and license files;
+- absence of accidental `src/`, `tests/`, and `coverage/` directories.
+
+The smoke install uses the dependency content already present in the pnpm store and disables installed-package lifecycle scripts. A failure is a release blocker even when source-tree tests are green.
+
+Also review `pnpm pack:check` before publication. The package must contain only intended runtime code, documentation, license, and referenced assets; it must not contain fixtures, coverage, temporary archives, credentials, or local output.
+
+## Production dependency audit
+
+Run:
 
 ```bash
-node dist/cli.js --version
-node dist/cli.js rules --format json
+pnpm run audit:prod
 ```
+
+The release gate fails on known high or critical advisories in production dependencies. Do not make the release green by adding blanket audit ignores, `--ignore-unfixable`, or automatic audit fixes. If an advisory genuinely cannot affect SkillBench, document the threat-model rationale and the exact advisory before considering any narrowly scoped exception.
 
 ## Publish npm
 
 The npm package name is `skillbench-ai`; the installed executable is `skillbench`.
 
-Prefer npm trusted publishing / provenance when the repository and npm package are configured for it. Do not commit npm tokens or long-lived publishing credentials to the repository, workflow files, fixtures, or documentation.
+Prefer npm trusted publishing / OIDC and provenance when the package-side configuration is ready. Do not commit npm tokens or long-lived publishing credentials to the repository, workflow files, fixtures, or documentation.
 
-For the first npm publication, verify ownership and package availability before adding an npm badge or telling users to run `npx skillbench-ai`.
+The first publication is a bootstrap case: verify package ownership and public registry availability before configuring the final trusted publisher, because npm trusted/staged publishing requires an existing package. Do not add an npm badge or tell users to run `npx skillbench-ai` until the public package is actually resolvable and its installed CLI has been verified.
 
 ## Tag and GitHub release
 
@@ -63,7 +77,8 @@ After publication:
 
 - verify the npm package version and package contents;
 - verify `npx skillbench-ai --version` on a clean environment;
-- verify the CI badge on `main` is green;
+- verify the CI, Package Integrity, and Performance Guard checks on the released tree;
 - confirm the GitHub release/tag points to the intended commit;
+- verify provenance after trusted publishing is enabled;
 - update the README installation section and npm badge only after the package is publicly resolvable;
 - leave a fresh `## Unreleased` section in `CHANGELOG.md` for subsequent work.
