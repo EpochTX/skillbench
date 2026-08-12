@@ -19,15 +19,39 @@
 
 ![SkillBench terminal demo](docs/demo.svg)
 
+> **Current publication status (2026-08-12):** the `1.0.0` source/package candidate has passed every engineering gate and is merged, but the first npm publication reached the final step and returned npm `ENEEDAUTH` because maintainer publication credentials were not available to the workflow. There is therefore **no** `v1.0.0` tag and no GitHub Release yet. Until those exist, use validated source commit `365533eb2feb60467336ce1faca2df96a4ad1d78` and do not assume the npm/npx commands are publicly available. See [1.0 Publication Status](docs/1.0-PUBLICATION-STATUS.md).
+
 SkillBench 1.0 brings Agent Skills, `AGENTS.md`, `CLAUDE.md`, Cursor Rules, and similar instruction files into a repeatable engineering quality system: static checks, security rules, token efficiency, cross-agent compatibility, regression comparison, SARIF, CI gates, auditable safe fixes, and a human-labeled rule benchmark.
 
-> **Release-integrity guarantee:** `v1.0.0` is created only after `skillbench-ai@1.0.0` has been successfully published and verified from the npm registry. If you are viewing an untagged release candidate, use the source workflow below.
+> **Release-integrity guarantee:** `v1.0.0` is created only after `skillbench-ai@1.0.0` has been successfully published and verified from the npm registry. The workflow will not present a tag-first, npm-failed state as a completed release.
 
 ## Quick start
 
-### npm / npx
+### Current: run the validated source candidate
 
-Run without a global install:
+```bash
+git clone https://github.com/EpochTX/skillbench.git
+cd skillbench
+git checkout --detach 365533eb2feb60467336ce1faca2df96a4ad1d78
+
+corepack enable
+pnpm install --frozen-lockfile
+pnpm build
+
+node dist/cli.js scan SKILL.md
+```
+
+Develop current `main` with:
+
+```bash
+pnpm dev -- scan SKILL.md
+```
+
+SkillBench supports Linux, macOS, and Windows on Node.js 20 or newer.
+
+### npm / npx (enabled after registry publication)
+
+The following commands represent the formal 1.0 release only after `v1.0.0` exists and `skillbench-ai@1.0.0` is publicly resolvable from the npm registry:
 
 ```bash
 npx --yes skillbench-ai@1.0.0 scan SKILL.md
@@ -41,27 +65,6 @@ skillbench scan SKILL.md
 ```
 
 The npm package is `skillbench-ai`; the installed executable is `skillbench`.
-
-### Run from source
-
-```bash
-git clone https://github.com/EpochTX/skillbench.git
-cd skillbench
-
-corepack enable
-pnpm install --frozen-lockfile
-pnpm build
-
-node dist/cli.js scan SKILL.md
-```
-
-Development mode:
-
-```bash
-pnpm dev -- scan SKILL.md
-```
-
-SkillBench supports Linux, macOS, and Windows on Node.js 20 or newer.
 
 ## Why SkillBench?
 
@@ -271,7 +274,7 @@ SARIF follows SARIF 2.1.0 and includes stable fingerprints, rule metadata, locat
 
 ## GitHub Actions
 
-After the 1.0 registry release, pin the npm version in CI:
+Before the npm bootstrap completes, pin CI to the validated 1.0.0 source candidate:
 
 ```yaml
 name: SkillBench
@@ -291,19 +294,28 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          version: 10.34.5
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           package-manager-cache: false
+      - name: Install validated SkillBench 1.0.0 candidate
+        run: |
+          git clone --no-checkout https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git -C "$RUNNER_TEMP/skillbench" checkout --detach 365533eb2feb60467336ce1faca2df96a4ad1d78
+          pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+          pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Check agent instructions
-        run: npx --yes skillbench-ai@1.0.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 A complete SARIF / Code Scanning example is available at [`examples/github-actions/skillbench-sarif.yml`](examples/github-actions/skillbench-sarif.yml).
 
 ## 1.0 release and supply-chain gates
 
-The exact 1.0 candidate must pass on the same commit:
+The 1.0 release candidate has passed on the same commit:
 
 - **CI:** Node 20/22, macOS, Windows, including the production `dist/cli.js` contract;
 - **Package Integrity:** real `.tgz` install in a clean consumer, ESM import, d.ts compile, installed bin, and scan;
@@ -311,7 +323,7 @@ The exact 1.0 candidate must pass on the same commit:
 - **Performance Guard:** deterministic 120-file repository-scale workload;
 - **Publish preflight:** Node 24 + npm 11.18.0 running the complete `pnpm release:check` again.
 
-The publish sequence verifies npm registry state before creating `v1.0.0` or the GitHub Release, preventing a failed npm publication from being presented as a completed release. See [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md) and [RELEASING.md](RELEASING.md).
+The only remaining step is npm maintainer authorization. The explicit Publish bootstrap reruns the validated release commit, completes npm publication and registry verification first, and creates `v1.0.0` plus the GitHub Release only afterward. See [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md), [docs/1.0-PUBLICATION-STATUS.md](docs/1.0-PUBLICATION-STATUS.md), and [RELEASING.md](RELEASING.md).
 
 ## Development
 
@@ -337,8 +349,8 @@ pnpm release:check
 
 - **v0.1:** static analysis, safety rules, token analysis, five-agent compatibility, CLI, JSON, CI, badges.
 - **v0.2:** SARIF 2.1.0, GitHub Actions annotations, `compare` / `diff`, rule introspection, report file output.
-- **v1.0:** stable CLI/API contracts, safe writer, 24/24 human-labeled benchmark, real package-install gate, performance baseline, production dependency audit, and a verifiable release chain.
-- **1.x:** continue adding deterministic rules, agent adapters, provably safe fixers, and analysis capabilities under the compatibility promise.
+- **v1.0:** engineering candidate complete — stable CLI/API contracts, safe writer, 24/24 human-labeled benchmark, real package-install gate, performance baseline, production dependency audit, and verifiable release chain; public npm bootstrap remains pending maintainer authorization only.
+- **1.x:** after the formal release, continue adding deterministic rules, agent adapters, provably safe fixers, and analysis capabilities under the compatibility promise.
 - **Future exploration:** execution-style Skill benchmarks inside an explicit sandbox, optional LLM judging, and Registry/public leaderboards without weakening the deterministic 1.x default path.
 
 ## Contributing
