@@ -58,10 +58,7 @@ function verifyJsonScan(target: string, outputPath: string): void {
     run('scan', target, '--format', 'json', '--no-color'),
     'scan JSON',
   );
-  const report = parseJson(direct.stdout) as {
-    schemaVersion?: string;
-    target?: string;
-  };
+  const report = parseJson(direct.stdout) as { schemaVersion?: string; target?: string };
   assert(report.schemaVersion === '0.1', 'scan JSON schemaVersion mismatch');
   assertNoAnsi(direct.stdout, 'scan --no-color');
 
@@ -74,10 +71,7 @@ function verifyJsonScan(target: string, outputPath: string): void {
     schemaVersion?: string;
   };
   assert(fileReport.schemaVersion === '0.1', '--output report schema mismatch');
-  assert(
-    written.stdout.startsWith('Wrote '),
-    '--output did not report the written path',
-  );
+  assert(written.stdout.startsWith('Wrote '), '--output did not report the written path');
 }
 
 function verifyHumanViews(target: string): void {
@@ -93,39 +87,42 @@ function verifyHumanViews(target: string): void {
   }
 
   const lint = assertSuccess(run('lint', dangerousFixture, '--no-color'), 'lint');
-  assert(
-    lint.stdout.includes('SB100'),
-    'lint did not expose expected rule findings',
-  );
+  assert(lint.stdout.includes('SB100'), 'lint did not expose expected rule findings');
   assertNoAnsi(lint.stdout, 'lint --no-color');
 
-  const security = assertSuccess(
-    run('security', dangerousFixture, '--no-color'),
-    'security',
-  );
-  assert(
-    security.stdout.includes('Security Report'),
-    'security output contract mismatch',
-  );
+  const security = assertSuccess(run('security', dangerousFixture, '--no-color'), 'security');
+  assert(security.stdout.includes('Security Report'), 'security output contract mismatch');
   assertNoAnsi(security.stdout, 'security --no-color');
 }
 
 function verifyFixFlow(target: string): void {
   const before = readFileSync(target, 'utf8');
   const preview = assertSuccess(run('fix', target, '--no-color'), 'fix preview');
-  assert(preview.stdout.includes('No files were changed'), 'fix preview must stay read-only');
+  assert(
+    preview.stdout.includes('No files were changed'),
+    'fix preview must stay read-only',
+  );
   assert(readFileSync(target, 'utf8') === before, 'fix preview modified the target');
 
   const applied = assertSuccess(
     run('fix', target, '--write', '--backup', '--no-color'),
     'fix --write',
   );
-  assert(applied.stdout.includes('Applied 1 safe fix'), 'fix --write did not apply the safe fix');
-  assert(existsSync(`${target}.skillbench.bak`), 'fix --backup did not create a backup');
+  assert(
+    applied.stdout.includes('Applied 1 safe fix'),
+    'fix --write did not apply the safe fix',
+  );
+  assert(
+    existsSync(`${target}.skillbench.bak`),
+    'fix --backup did not create a backup',
+  );
 }
 
 function verifyRules(): void {
-  const listed = assertSuccess(run('rules', '--format', 'json', '--no-color'), 'rules JSON');
+  const listed = assertSuccess(
+    run('rules', '--format', 'json', '--no-color'),
+    'rules JSON',
+  );
   const rules = parseJson(listed.stdout) as unknown[];
   assert(rules.length === 24, `rules JSON returned ${rules.length} rules`);
 
@@ -152,10 +149,7 @@ function verifyCompare(target: string): void {
   const report = parseJson(comparison.stdout) as {
     issues?: { introduced?: unknown[] };
   };
-  assert(
-    (report.issues?.introduced?.length ?? 0) > 0,
-    'compare did not report introduced issues',
-  );
+  assert((report.issues?.introduced?.length ?? 0) > 0, 'compare did not report introduced issues');
 }
 
 function verifyBenchmark(): void {
@@ -182,26 +176,19 @@ function verifyInitAndBadge(directory: string, target: string): void {
   const initDirectory = path.join(directory, '初始化 配置');
   const initialized = assertSuccess(run('init', initDirectory), 'init');
   assert(initialized.stdout.includes('Created'), 'init output mismatch');
-  assert(existsSync(path.join(initDirectory, '.skillbench.yml')), 'init did not create config');
+  assert(
+    existsSync(path.join(initDirectory, '.skillbench.yml')),
+    'init did not create config',
+  );
 
   const badge = assertSuccess(run('badge', target), 'badge');
-  assert(
-    badge.stdout.includes('https://img.shields.io/badge/SkillBench-'),
-    'badge output mismatch',
-  );
+  assert(badge.stdout.includes('https://img.shields.io/badge/SkillBench-'), 'badge output mismatch');
 }
 
 function verifyExitCodes(target: string): void {
   assertStatus(run('rules', 'SB999', '--no-color'), 2, 'unknown rule exit code');
   assertStatus(
-    run(
-      'scan',
-      dangerousFixture,
-      '--ci',
-      '--fail-on',
-      'critical',
-      '--no-color',
-    ),
+    run('scan', dangerousFixture, '--ci', '--fail-on', 'critical', '--no-color'),
     1,
     'policy failure exit code',
   );
