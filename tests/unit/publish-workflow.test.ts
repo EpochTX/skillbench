@@ -18,19 +18,25 @@ describe('publish workflow', () => {
     expect(workflow).toContain('pnpm release:check');
   });
 
-  it('publishes only from the guarded main bootstrap or version tags', () => {
-    expect(workflow).toContain("github.ref == 'refs/heads/main'");
-    expect(workflow).toContain("startsWith(github.ref, 'refs/tags/v')");
-    expect(workflow).toContain("version\" != '1.0.0'");
+  it('requires an explicit authenticated retry for the validated 1.0 candidate', () => {
+    expect(workflow).toContain('workflow_dispatch:');
+    expect(workflow).toContain(
+      'default: 365533eb2feb60467336ce1faca2df96a4ad1d78',
+    );
+    expect(workflow).toContain("if: github.event_name == 'workflow_dispatch'");
+    expect(workflow).toContain('ref: ${{ inputs.release_sha }}');
+    expect(workflow).toContain('EXPECTED_RELEASE_SHA: 365533eb2feb60467336ce1faca2df96a4ad1d78');
     expect(workflow).toContain('npm publish --access public --provenance');
     expect(workflow).toContain('NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}');
   });
 
-  it('grants OIDC and release write permissions only to publish jobs', () => {
+  it('keeps version-tag publishing and fail-safe release creation', () => {
+    expect(workflow).toContain("startsWith(github.ref, 'refs/tags/v')");
     expect(workflow).toContain('id-token: write');
     expect(workflow).toContain('contents: write');
     expect(workflow).toContain('GH_TOKEN: ${{ github.token }}');
     expect(workflow).toContain('gh release create');
     expect(workflow).toContain('git/refs');
+    expect(workflow).toContain('Verify published package');
   });
 });
