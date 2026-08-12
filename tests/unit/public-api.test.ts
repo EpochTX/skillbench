@@ -6,6 +6,8 @@ describe('public API', () => {
   it('exports the supported analysis and reporter surface', () => {
     expect(typeof api.analyzeTarget).toBe('function');
     expect(typeof api.analyzeDocuments).toBe('function');
+    expect(typeof api.runRuleBenchmark).toBe('function');
+    expect(api.BenchmarkError).toBeTypeOf('function');
     expect(typeof api.compareReports).toBe('function');
     expect(typeof api.planSafeFixes).toBe('function');
     expect(typeof api.applyFixPlan).toBe('function');
