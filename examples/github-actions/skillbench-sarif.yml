@@ -16,12 +16,21 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with:
+          version: 10.34.5
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           package-manager-cache: false
+      - name: Install validated SkillBench 1.0.0 candidate from source
+        run: |
+          git clone --no-checkout https://github.com/EpochTX/skillbench.git "$RUNNER_TEMP/skillbench"
+          git -C "$RUNNER_TEMP/skillbench" checkout --detach 365533eb2feb60467336ce1faca2df96a4ad1d78
+          pnpm --dir "$RUNNER_TEMP/skillbench" install --frozen-lockfile
+          pnpm --dir "$RUNNER_TEMP/skillbench" build
       - name: Analyze agent instructions
-        run: npx --yes skillbench-ai@1.0.0 scan "$GITHUB_WORKSPACE" --format sarif --output skillbench.sarif --ci --fail-on error
+        run: node "$RUNNER_TEMP/skillbench/dist/cli.js" scan "$GITHUB_WORKSPACE" --format sarif --output skillbench.sarif --ci --fail-on error
       - name: Upload SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
