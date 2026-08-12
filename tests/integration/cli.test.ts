@@ -180,6 +180,32 @@ describe('CLI smoke tests', () => {
     expect(result.stdout).toContain('SB003');
   });
 
+  it('runs a labeled rule benchmark with machine-readable metrics', () => {
+    const result = runCli(
+      'benchmark',
+      'tests/corpus/rules.yml',
+      '--ci',
+      '--format',
+      'json',
+      '--no-color',
+    );
+    expect(result.status).toBe(0);
+    const report = JSON.parse(result.stdout) as {
+      passed: boolean;
+      totals: {
+        precision: number;
+        recall: number;
+        coveredRules: number;
+        totalRules: number;
+      };
+    };
+    expect(report.passed).toBe(true);
+    expect(report.totals.precision).toBe(1);
+    expect(report.totals.recall).toBe(1);
+    expect(report.totals.coveredRules).toBe(13);
+    expect(report.totals.totalRules).toBe(24);
+  });
+
   it('emits SARIF and GitHub annotation formats', () => {
     const sarif = runCli(
       'lint',
