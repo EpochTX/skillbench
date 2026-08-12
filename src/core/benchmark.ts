@@ -72,7 +72,9 @@ export class BenchmarkError extends Error {
   override readonly name = 'BenchmarkError';
 }
 
-export async function runRuleBenchmark(manifestPath: string): Promise<RuleBenchmarkReport> {
+export async function runRuleBenchmark(
+  manifestPath: string,
+): Promise<RuleBenchmarkReport> {
   const absoluteManifest = path.resolve(manifestPath);
   const manifest = await loadManifest(absoluteManifest);
   validateManifestSemantics(manifest);
@@ -143,7 +145,9 @@ async function analyzeBenchmarkTarget(
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
-    throw new BenchmarkError(`Benchmark case ${caseId} could not be analyzed: ${detail}`);
+    throw new BenchmarkError(
+      `Benchmark case ${caseId} could not be analyzed: ${detail}`,
+    );
   }
 }
 
@@ -159,11 +163,15 @@ async function loadManifest(
       const details = error.issues
         .map((entry) => `${entry.path.join('.') || '<root>'}: ${entry.message}`)
         .join('; ');
-      throw new BenchmarkError(`Invalid benchmark manifest at ${manifestPath}: ${details}`);
+      throw new BenchmarkError(
+        `Invalid benchmark manifest at ${manifestPath}: ${details}`,
+      );
     }
     if (error instanceof BenchmarkError) throw error;
     const detail = error instanceof Error ? error.message : String(error);
-    throw new BenchmarkError(`Cannot read benchmark manifest at ${manifestPath}: ${detail}`);
+    throw new BenchmarkError(
+      `Cannot read benchmark manifest at ${manifestPath}: ${detail}`,
+    );
   }
 }
 
@@ -187,7 +195,9 @@ function validateManifestSemantics(
         `Benchmark case ${benchmarkCase.id} repeats expected rule(s): ${uniqueSorted(duplicateRules).join(', ')}`,
       );
     }
-    const unknownRules = benchmarkCase.expectedRules.filter((ruleId) => !knownRules.has(ruleId));
+    const unknownRules = benchmarkCase.expectedRules.filter(
+      (ruleId) => !knownRules.has(ruleId),
+    );
     if (unknownRules.length > 0) {
       throw new BenchmarkError(
         `Benchmark case ${benchmarkCase.id} references unknown rule(s): ${uniqueSorted(unknownRules).join(', ')}`,
