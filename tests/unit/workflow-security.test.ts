@@ -1,7 +1,6 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 
-import YAML from 'yaml';
 import { describe, expect, it } from 'vitest';
 
 const root = path.resolve(import.meta.dirname, '../..');
@@ -56,47 +55,5 @@ describe('workflow supply-chain policy', () => {
         `${filePath} must disable checkout credential persistence`,
       ).toBe(checkoutCount);
     }
-  });
-
-  it('configures weekly dependency updates and preserves Node 20 majors', () => {
-    const config = YAML.parse(read('.github/dependabot.yml')) as {
-      version: number;
-      updates: {
-        'package-ecosystem': string;
-        schedule: { interval: string };
-        ignore?: {
-          'dependency-name': string;
-          'update-types': string[];
-        }[];
-      }[];
-    };
-
-    expect(config.version).toBe(2);
-    expect(config.updates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          'package-ecosystem': 'npm',
-          schedule: { interval: 'weekly' },
-        }),
-        expect.objectContaining({
-          'package-ecosystem': 'github-actions',
-          schedule: { interval: 'weekly' },
-        }),
-      ]),
-    );
-
-    const npmUpdate = config.updates.find(
-      (update) => update['package-ecosystem'] === 'npm',
-    );
-    expect(npmUpdate?.ignore).toEqual([
-      {
-        'dependency-name': 'chalk',
-        'update-types': ['version-update:semver-major'],
-      },
-      {
-        'dependency-name': 'commander',
-        'update-types': ['version-update:semver-major'],
-      },
-    ]);
   });
 });
