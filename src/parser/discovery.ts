@@ -24,6 +24,7 @@ const defaultIgnores = [
 ];
 
 const maxDocumentBytes = 2 * 1024 * 1024;
+const maxConcurrentReads = 16;
 
 export class DiscoveryError extends Error {
   override readonly name = 'DiscoveryError';
@@ -57,7 +58,20 @@ export async function discoverDocuments(
       `No supported agent instruction files found under ${target}`,
     );
   }
-  return Promise.all(paths.map((filePath) => readDocument(filePath, absoluteTarget)));
+  // Keep result order stable while limiting open files on large repositories.
+  const documents = new Array<ParsedDocument>(paths.length);
+  let nextIndex = 0;
+  await Promise.all(
+    Array.from({ length: Math.min(maxConcurrentReads, paths.length) }, async () => {
+      while (nextIndex < paths.length) {
+        const index = nextIndex++;
+        const filePath = paths[index];
+        if (filePath === undefined) continue;
+        documents[index] = await readDocument(filePath, absoluteTarget);
+      }
+    }),
+  );
+  return documents;
 }
 
 async function walk(
