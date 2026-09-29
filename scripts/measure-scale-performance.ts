@@ -40,6 +40,15 @@ async function main(): Promise<void> {
         `Performance fixture discovery mismatch: expected ${fileCount} files, received ${report.files.length}.`,
       );
     }
+    const countedIssues = report.files.reduce(
+      (total, file) => total + file.issueCount,
+      0,
+    );
+    if (countedIssues !== report.issues.length) {
+      throw new Error(
+        `Per-file finding counts disagree with the report: ${countedIssues} versus ${report.issues.length}.`,
+      );
+    }
 
     const result: PerformanceResult = {
       version: 1,
