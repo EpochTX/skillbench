@@ -22,6 +22,10 @@ pnpm pack:check
 
 This performs a dry-run package build so the final tarball contents can be reviewed before publication.
 
+## Dependency maintenance
+
+Scheduled Dependabot version-update pull requests are disabled. Review dependency updates manually when preparing a maintenance release. Check the Node.js 20 and 22 CI matrix before updating build or test tooling; a package that requires Node.js 22 cannot replace a tool used by the Node.js 20 jobs. Run `pnpm install` to update the lockfile, then `pnpm verify` and `pnpm release:check` before merging. Security advisories should still be reviewed as they arise.
+
 ## Add a new SkillBench rule
 
 1. Choose the category under `src/rules/` and add a focused rule module. A rule exports a typed `Rule` with `id`, `name`, `description`, `category`, `defaultSeverity`, `weight`, and `check()`.
