@@ -91,11 +91,11 @@
     "@eslint/js": "^9.33.0",
     "@types/node": "^25.9.8",
     "eslint": "^9.33.0",
-    "prettier": "^3.9.8",
+    "prettier": "^3.9.9",
     "tsup": "^8.5.0",
-    "tsx": "^4.23.13",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.70.0",
+    "typescript-eslint": "^8.70.1",
     "vitest": "^3.2.4"
   }
 }
