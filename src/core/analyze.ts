@@ -50,6 +50,10 @@ export function analyzeDocuments(
     critical: 0,
   };
   for (const entry of issues) summary[entry.severity] += 1;
+  const issueCounts = new Map<string, number>();
+  for (const issue of issues) {
+    issueCounts.set(issue.path, (issueCounts.get(issue.path) ?? 0) + 1);
+  }
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -66,8 +70,7 @@ export function analyzeDocuments(
       path: context.document.relativePath,
       kind: context.document.kind,
       tokens: context.tokens,
-      issueCount: issues.filter((entry) => entry.path === context.document.relativePath)
-        .length,
+      issueCount: issueCounts.get(context.document.relativePath) ?? 0,
     })),
   };
 }
