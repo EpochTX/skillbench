@@ -1,6 +1,6 @@
 {
   "name": "skillbench-ai",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Lint, score, secure and benchmark AI Agent Skills and instruction files across Codex, Claude Code, Cursor, Gemini CLI and GitHub Copilot.",
   "type": "module",
   "main": "./dist/index.js",

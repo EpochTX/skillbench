@@ -52,43 +52,45 @@ export function estimateTokens(value: string): number {
 }
 
 export function findDuplicateParagraphs(paragraphs: Paragraph[]): DuplicateMatch[] {
-  const candidates = paragraphs
-    .filter((paragraph) => normalizeText(paragraph.text).length >= 48)
-    .slice(0, 500)
-    .map((paragraph) => ({
-      paragraph,
-      normalized: normalizeText(paragraph.text),
-      grams: ngrams(paragraph.text),
-    }));
   const matches: DuplicateMatch[] = [];
-  const alreadyMarked = new Set<number>();
+  const exactOriginals = new Map<string, Paragraph>();
+  const nearCandidates: {
+    paragraph: Paragraph;
+    normalized: string;
+    grams: Set<string>;
+  }[] = [];
 
-  for (let leftIndex = 0; leftIndex < candidates.length; leftIndex += 1) {
-    const left = candidates[leftIndex];
-    if (!left) continue;
-    for (
-      let rightIndex = leftIndex + 1;
-      rightIndex < candidates.length;
-      rightIndex += 1
-    ) {
-      const right = candidates[rightIndex];
-      if (!right || alreadyMarked.has(right.paragraph.startLine)) continue;
+  for (const paragraph of paragraphs) {
+    const normalized = normalizeText(paragraph.text);
+    if (normalized.length < 48) continue;
+
+    // Exact matches stay cheap and complete even in documents with >500 paragraphs.
+    const exactOriginal = exactOriginals.get(normalized);
+    if (exactOriginal) {
+      matches.push({ original: exactOriginal, duplicate: paragraph, similarity: 1 });
+      continue;
+    }
+    exactOriginals.set(normalized, paragraph);
+
+    // Fuzzy comparisons remain capped to avoid quadratic work on long inputs.
+    if (nearCandidates.length >= 500) continue;
+    const grams = ngrams(paragraph.text);
+    for (const left of nearCandidates) {
       const lengthRatio =
-        Math.min(left.normalized.length, right.normalized.length) /
-        Math.max(left.normalized.length, right.normalized.length);
+        Math.min(left.normalized.length, normalized.length) /
+        Math.max(left.normalized.length, normalized.length);
       if (lengthRatio < 0.72) continue;
-
-      const similarity =
-        left.normalized === right.normalized ? 1 : jaccard(left.grams, right.grams);
+      const similarity = jaccard(left.grams, grams);
       if (similarity >= 0.86) {
         matches.push({
           original: left.paragraph,
-          duplicate: right.paragraph,
+          duplicate: paragraph,
           similarity: round(similarity, 3),
         });
-        alreadyMarked.add(right.paragraph.startLine);
+        break;
       }
     }
+    nearCandidates.push({ paragraph, normalized, grams });
   }
   return matches;
 }

@@ -14,14 +14,14 @@
   <a href="https://github.com/EpochTX/skillbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/EpochTX/skillbench/ci.yml?branch=main&style=flat-square&label=CI"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black?style=flat-square"></a>
   <img alt="Node 20 or newer" src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white">
-  <img alt="SkillBench version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square">
+  <img alt="SkillBench version 1.1.0" src="https://img.shields.io/badge/version-1.1.0-blue?style=flat-square">
 </p>
 
 ![SkillBench terminal demo](docs/demo.svg)
 
 SkillBench 1.0 brings Agent Skills, `AGENTS.md`, `CLAUDE.md`, Cursor Rules, and similar instruction files into a repeatable engineering quality system: static checks, security rules, token efficiency, cross-agent compatibility, regression comparison, SARIF, CI gates, auditable safe fixes, and a human-labeled rule benchmark.
 
-> **Release-integrity guarantee:** `v1.0.0` is created only after `skillbench-ai@1.0.0` has been successfully published and verified from the npm registry. If you are viewing an untagged release candidate, use the source workflow below.
+> **Release-integrity guarantee:** `v1.1.0` is created only after `skillbench-ai@1.1.0` has been successfully published and verified from the npm registry. If you are viewing an untagged release candidate, use the source workflow below.
 
 ## Quick start
 
@@ -30,13 +30,13 @@ SkillBench 1.0 brings Agent Skills, `AGENTS.md`, `CLAUDE.md`, Cursor Rules, and 
 Run without a global install:
 
 ```bash
-npx --yes skillbench-ai@1.0.0 scan SKILL.md
+npx --yes skillbench-ai@1.1.0 scan SKILL.md
 ```
 
 Or install the CLI globally:
 
 ```bash
-npm install --global skillbench-ai@1.0.0
+npm install --global skillbench-ai@1.1.0
 skillbench scan SKILL.md
 ```
 
@@ -251,12 +251,12 @@ Unknown keys, unknown rule IDs, and invalid severities fail explicitly rather th
 
 ## JSON / SARIF / API stability
 
-SkillBench 1.0.0 keeps JSON report `schemaVersion` at `0.1`; tool version and report schema version are separate compatibility dimensions.
+SkillBench 1.1.0 keeps JSON report `schemaVersion` at `0.1`; tool version and report schema version are separate compatibility dimensions.
 
 ```json
 {
   "schemaVersion": "0.1",
-  "tool": { "name": "skillbench", "version": "1.0.0" },
+  "tool": { "name": "skillbench", "version": "1.1.0" },
   "target": "/repo/SKILL.md",
   "score": { "overall": 91.4, "categories": {} },
   "summary": { "info": 0, "warning": 2, "error": 0, "critical": 0 },
@@ -296,7 +296,7 @@ jobs:
           node-version: 20
           package-manager-cache: false
       - name: Check agent instructions
-        run: npx --yes skillbench-ai@1.0.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: npx --yes skillbench-ai@1.1.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 A complete SARIF / Code Scanning example is available at [`examples/github-actions/skillbench-sarif.yml`](examples/github-actions/skillbench-sarif.yml).
@@ -311,7 +311,7 @@ The exact 1.0 candidate must pass on the same commit:
 - **Performance Guard:** deterministic 120-file repository-scale workload;
 - **Publish preflight:** Node 24 + npm 11.18.0 running the complete `pnpm release:check` again.
 
-The publish sequence verifies npm registry state before creating `v1.0.0` or the GitHub Release, preventing a failed npm publication from being presented as a completed release. See [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md) and [RELEASING.md](RELEASING.md).
+The publish sequence verifies npm registry state before creating `v1.1.0` or the GitHub Release, preventing a failed npm publication from being presented as a completed release. See [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md) and [RELEASING.md](RELEASING.md).
 
 ## Development
 
