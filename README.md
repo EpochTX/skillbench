@@ -14,14 +14,14 @@
   <a href="https://github.com/EpochTX/skillbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/EpochTX/skillbench/ci.yml?branch=main&style=flat-square&label=CI"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-black?style=flat-square"></a>
   <img alt="Node 20 or newer" src="https://img.shields.io/badge/node-%3E%3D20-339933?style=flat-square&logo=node.js&logoColor=white">
-  <img alt="SkillBench version 1.0.0" src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square">
+  <img alt="SkillBench version 1.1.0" src="https://img.shields.io/badge/version-1.1.0-blue?style=flat-square">
 </p>
 
 ![SkillBench terminal demo](docs/demo.svg)
 
 SkillBench 1.0 将 Agent Skill、`AGENTS.md`、`CLAUDE.md`、Cursor Rules 等指令文件纳入可重复的工程质量体系：静态检查、安全规则、Token 效率、跨 Agent 兼容性、回归对比、SARIF、CI 门禁、可审计安全修复和人工标签规则 Benchmark。
 
-> **发布完整性保证：** `v1.0.0` 只会在 `skillbench-ai@1.0.0` 已成功发布并从 npm Registry 验证后创建。如果你正在查看尚未打 tag 的 release candidate，请使用下方“从源码运行”方式。
+> **发布完整性保证：** `v1.1.0` 只会在 `skillbench-ai@1.1.0` 已成功发布并从 npm Registry 验证后创建。如果你正在查看尚未打 tag 的 release candidate，请使用下方“从源码运行”方式。
 
 ## 快速开始
 
@@ -30,13 +30,13 @@ SkillBench 1.0 将 Agent Skill、`AGENTS.md`、`CLAUDE.md`、Cursor Rules 等指
 无需全局安装：
 
 ```bash
-npx --yes skillbench-ai@1.0.0 scan SKILL.md
+npx --yes skillbench-ai@1.1.0 scan SKILL.md
 ```
 
 或全局安装 CLI：
 
 ```bash
-npm install --global skillbench-ai@1.0.0
+npm install --global skillbench-ai@1.1.0
 skillbench scan SKILL.md
 ```
 
@@ -251,12 +251,12 @@ ignore:
 
 ## JSON / SARIF / API 稳定性
 
-1.0.0 的 JSON 报告 `schemaVersion` 仍为 `0.1`；工具版本与 schema 版本是两个独立兼容性维度。
+1.1.0 的 JSON 报告 `schemaVersion` 仍为 `0.1`；工具版本与 schema 版本是两个独立兼容性维度。
 
 ```json
 {
   "schemaVersion": "0.1",
-  "tool": { "name": "skillbench", "version": "1.0.0" },
+  "tool": { "name": "skillbench", "version": "1.1.0" },
   "target": "/repo/SKILL.md",
   "score": { "overall": 91.4, "categories": {} },
   "summary": { "info": 0, "warning": 2, "error": 0, "critical": 0 },
@@ -296,7 +296,7 @@ jobs:
           node-version: 20
           package-manager-cache: false
       - name: Check agent instructions
-        run: npx --yes skillbench-ai@1.0.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
+        run: npx --yes skillbench-ai@1.1.0 scan "$GITHUB_WORKSPACE" --ci --fail-on critical
 ```
 
 完整 SARIF / Code Scanning 示例见 [`examples/github-actions/skillbench-sarif.yml`](examples/github-actions/skillbench-sarif.yml)。
@@ -311,7 +311,7 @@ jobs:
 - **Performance Guard**：确定性 120 文件仓库规模测试；
 - **Publish preflight**：Node 24 + npm 11.18.0 再跑完整 `pnpm release:check`。
 
-发布流程先验证 npm Registry，再创建 `v1.0.0` 与 GitHub Release；不会用“先打 tag、后发现 npm 发布失败”的半发布状态冒充正式版本。完整标准见 [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md)，维护者流程见 [RELEASING.md](RELEASING.md)。
+发布流程先验证 npm Registry，再创建 `v1.1.0` 与 GitHub Release；不会用“先打 tag、后发现 npm 发布失败”的半发布状态冒充正式版本。完整标准见 [docs/1.0-RELEASE-CRITERIA.md](docs/1.0-RELEASE-CRITERIA.md)，维护者流程见 [RELEASING.md](RELEASING.md)。
 
 ## 开发
 

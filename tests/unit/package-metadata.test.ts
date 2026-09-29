@@ -3,6 +3,8 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { VERSION } from '../../src/version.js';
+
 const root = path.resolve(import.meta.dirname, '../..');
 const packageJson = JSON.parse(
   readFileSync(path.join(root, 'package.json'), 'utf8'),
@@ -53,9 +55,9 @@ describe('package metadata', () => {
     expect(packageJson.scripts.prepublishOnly).toContain('pnpm verify');
   });
 
-  it('advertises the versioned npm command in the 1.0 terminal demo', () => {
+  it('advertises the current version in the terminal demo', () => {
     const demo = readFileSync(path.join(root, 'docs/demo.svg'), 'utf8');
     expect(demo).toContain('npx skillbench-ai scan SKILL.md');
-    expect(demo).toContain('SkillBench 1.0.0');
+    expect(demo).toContain(`SkillBench ${VERSION}`);
   });
 });

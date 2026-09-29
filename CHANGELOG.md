@@ -4,6 +4,16 @@ All notable changes to SkillBench will be documented in this file. The project f
 
 ## Unreleased
 
+## 1.1.0 — 2026-09-29
+
+### Improved
+
+- Exact repeated paragraphs are detected throughout long instruction files, including beyond the 500-paragraph fuzzy-comparison budget. Near-duplicate checks remain bounded.
+- Repository scans limit concurrent instruction-file reads and count per-file findings in one pass. The 120-file guard also checks that finding totals agree.
+- CI, package-integrity checks, and the labeled rule benchmark continue to cover Node.js 20 and 22, Windows, and macOS.
+- Scheduled Dependabot version-update pull requests are disabled; dependency upgrades now follow manual release review.
+- The publish workflow can release a validated version bump from `main`, verify the npm registry and installed CLI, then create a tag and GitHub Release pointing at that exact commit. Tag-triggered runs remain idempotent.
+
 ## 1.0.0 — 2026-08-12
 
 ### Added

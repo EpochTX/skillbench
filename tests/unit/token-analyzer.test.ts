@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   TokenEfficiencyAnalyzer,
   estimateTokens,
+  findDuplicateParagraphs,
 } from '../../src/core/token-analyzer.js';
 import { parseDocument } from '../../src/parser/parser.js';
 
@@ -23,5 +24,20 @@ describe('TokenEfficiencyAnalyzer', () => {
     const metrics = new TokenEfficiencyAnalyzer().analyze(document);
     expect(metrics.duplicateTokens).toBeGreaterThan(0);
     expect(metrics.redundancyRatio).toBeGreaterThan(0.3);
+  });
+
+  it('finds exact repetition beyond the fuzzy-comparison limit', () => {
+    const paragraphs = Array.from({ length: 550 }, (_, index) => ({
+      text: `Inspect the independent instruction number ${index} and record its evidence before moving to the next one.`,
+      startLine: index * 2 + 1,
+      endLine: index * 2 + 1,
+    }));
+    paragraphs.push({ ...paragraphs[525]!, startLine: 1101, endLine: 1101 });
+    const matches = findDuplicateParagraphs(paragraphs);
+    expect(matches).toContainEqual({
+      original: paragraphs[525],
+      duplicate: paragraphs[550],
+      similarity: 1,
+    });
   });
 });

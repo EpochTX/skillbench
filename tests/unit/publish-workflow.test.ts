@@ -18,10 +18,11 @@ describe('publish workflow', () => {
     expect(workflow).toContain('pnpm release:check');
   });
 
-  it('publishes only from the guarded main bootstrap or version tags', () => {
+  it('publishes from a validated main version bump or version tag', () => {
     expect(workflow).toContain("github.ref == 'refs/heads/main'");
     expect(workflow).toContain("startsWith(github.ref, 'refs/tags/v')");
-    expect(workflow).toContain("version\" != '1.0.0'");
+    expect(workflow).toContain('release_sha="$GITHUB_SHA"');
+    expect(workflow).toContain('echo \'eligible=false\' >> "$GITHUB_OUTPUT"');
     expect(workflow).toContain('npm publish --access public --provenance');
     expect(workflow).toContain('NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}');
   });
